@@ -2,7 +2,6 @@
 
 import {Input} from "@/components/ui/input";
 import {Button} from "@/components/ui/button";
-import {useForm} from "react-hook-form";
 import {SignInWithGoogleButton} from "@/app/auth/login/components/SignInWithGoogleButton";
 import {createClient} from "@/utils/supabase/client";
 import {useEffect, useState} from "react";
@@ -10,14 +9,11 @@ import {useRouter} from "next/navigation";
 
 
 export default function LoginPage() {
-    const [user, setUser] = useState<any>(null);
     const supabase = createClient();
     const router  = useRouter();
     useEffect(() => {
         const fetchUser = async () => {
             const {data: {user},} = await supabase.auth.getUser();
-            setUser(user);
-            console.log("=>(page.tsx:20) user", user);
             if(user){
                 router.push("/");
             }
