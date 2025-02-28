@@ -4,16 +4,8 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="f7f5397d-3ecc-4aac-81f7-a45cd9502ab7" name="Changes" comment="first commit">
-      <change afterPath="$PROJECT_DIR$/middleware.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+    <list default="true" id="f7f5397d-3ecc-4aac-81f7-a45cd9502ab7" name="Changes" comment="[feat/supabase-google-auth]: init auth with google provider">
       <change beforePath="$PROJECT_DIR$/app/auth/login/page.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/app/auth/login/page.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/page.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/app/page.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/components/ui/header.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/components/ui/header.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/next.config.ts" beforeDir="false" afterPath="$PROJECT_DIR$/next.config.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/package-lock.json" beforeDir="false" afterPath="$PROJECT_DIR$/package-lock.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/package.json" beforeDir="false" afterPath="$PROJECT_DIR$/package.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/utils/supabase/middleware.ts" beforeDir="false" afterPath="$PROJECT_DIR$/utils/supabase/middleware.ts" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/utils/supabase/server.ts" beforeDir="false" afterPath="$PROJECT_DIR$/utils/supabase/server.ts" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -185,7 +177,7 @@
       <workItem from="1740647487209" duration="180000" />
       <workItem from="1740647753052" duration="43000" />
       <workItem from="1740647890612" duration="18466000" />
-      <workItem from="1740713402425" duration="3349000" />
+      <workItem from="1740713402425" duration="3637000" />
     </task>
     <task id="LOCAL-00001" summary="Test commit">
       <option name="closed" value="true" />
@@ -211,7 +203,15 @@
       <option name="project" value="LOCAL" />
       <updated>1740651360818</updated>
     </task>
-    <option name="localTasksCounter" value="4" />
+    <task id="LOCAL-00004" summary="[feat/supabase-google-auth]: init auth with google provider">
+      <option name="closed" value="true" />
+      <created>1740716945255</created>
+      <option name="number" value="00004" />
+      <option name="presentableId" value="LOCAL-00004" />
+      <option name="project" value="LOCAL" />
+      <updated>1740716945255</updated>
+    </task>
+    <option name="localTasksCounter" value="5" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -220,7 +220,8 @@
   <component name="VcsManagerConfiguration">
     <MESSAGE value="Test commit" />
     <MESSAGE value="first commit" />
-    <option name="LAST_COMMIT_MESSAGE" value="first commit" />
+    <MESSAGE value="[feat/supabase-google-auth]: init auth with google provider" />
+    <option name="LAST_COMMIT_MESSAGE" value="[feat/supabase-google-auth]: init auth with google provider" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>

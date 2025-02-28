@@ -7,7 +7,7 @@ import {signInWithGoogle} from "@/lib/auth-actions";
 export function SignInWithGoogleButton() {
     return (
         <Button
-            onClick={(e) => signInWithGoogle()}
+            onClick={() => signInWithGoogle()}
             type="button"
             className="group cursor-pointer flex h-min items-center justify-center p-0.5 text-center font-medium relative focus:z-10 focus:outline-none text-gray-900 bg-white hover:bg-gray-100 border border-gray-300 enabled:hover:bg-gray-200 focus:ring-blue-300 dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:enabled:hover:bg-gray-600 dark:focus:ring-blue-800 rounded-lg focus:ring-2 mx-auto w-full">
                 <span className="flex items-stretch transition-all duration-200 rounded-md text-sm px-4 py-2">
