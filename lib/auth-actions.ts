@@ -60,8 +60,6 @@ export async function signout() {
         console.log(error);
         redirect("/error");
     }
-    await supabase.auth.refreshSession();
-
     redirect("/auth/login");
 }
 
@@ -81,8 +79,5 @@ export async function signInWithGoogle() {
         console.log(error);
         redirect("/error");
     }
-
-    await supabase.auth.refreshSession();
-
     redirect(<string>data?.url || "/");
 }

@@ -26,7 +26,7 @@ export default function LoginPage() {
             <SignInWithGoogleButton/>
             <div className="my-3 flex w-full items-center">
                 <hr className="grow border-gray-300"/>
-                <span className="mx-3 text-sm text-gray-400">OU BIEN</span>
+                <span className="mx-3 text-sm text-gray-400">OU</span>
                 <hr className="grow border-gray-300"/>
             </div>
             <div className="w-full">

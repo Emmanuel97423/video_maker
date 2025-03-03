@@ -112,8 +112,6 @@ export default function Header() {
                             </Link>
                         </NavigationMenuItem>
                     </div>
-                        <UserGreetText/>
-                    <LoginLogoutButton/>
                 </NavigationMenuList>
             </NavigationMenu>
         </header>
