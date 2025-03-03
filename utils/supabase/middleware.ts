@@ -1,27 +1,28 @@
-import { createServerClient } from '@supabase/ssr'
-import { NextResponse, type NextRequest } from 'next/server'
+import {createServerClient} from '@supabase/ssr'
+import {NextResponse, type NextRequest} from 'next/server'
+import {cookies} from "next/headers";
 
 export async function updateSession(request: NextRequest) {
     let supabaseResponse = NextResponse.next({
         request,
     })
-
+    const cookieStore = await cookies();
     const supabase = createServerClient(
         process.env.NEXT_PUBLIC_SUPABASE_URL!,
         process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
         {
             cookies: {
                 getAll() {
-                    return request.cookies.getAll()
+                    return cookieStore.getAll()
                 },
                 setAll(cookiesToSet) {
-                    cookiesToSet.forEach(({ name, value, options }) => request.cookies.set(name, value))
-                    supabaseResponse = NextResponse.next({
-                        request,
-                    })
-                    cookiesToSet.forEach(({ name, value, options }) =>
-                        supabaseResponse.cookies.set(name, value, options)
-                    )
+                    try {
+                        cookiesToSet.forEach(({name, value, options}) => {
+                            cookieStore.set(name, value, options)
+                        })
+                    } catch {
+
+                    }
                 },
             },
         }
@@ -34,17 +35,17 @@ export async function updateSession(request: NextRequest) {
     // IMPORTANT: DO NOT REMOVE auth.getUser()
 
     const {
-        data: { user },
+        data: {user},
     } = await supabase.auth.getUser()
 
     if (
         !user &&
-        !request.nextUrl.pathname.startsWith('/login') &&
+        !request.nextUrl.pathname.startsWith('/auth/login') &&
         !request.nextUrl.pathname.startsWith('/auth')
     ) {
         // no user, potentially respond by redirecting the user to the login page
         const url = request.nextUrl.clone()
-        url.pathname = '/login'
+        url.pathname = '/auth/login'
         return NextResponse.redirect(url)
     }
 
