@@ -1,0 +1,18 @@
+meta {
+  name: Login
+  type: http
+  seq: 1
+}
+
+post {{base_url}}/auth/v1/token?grant_type=password {
+  headers {
+    apikey: {{supabase_anon_key}}
+    Content-Type: application/json
+  }
+  body: json {
+    {
+      "email": "votre@email.com",
+      "password": "votre-mot-de-passe"
+    }
+  }
+} 

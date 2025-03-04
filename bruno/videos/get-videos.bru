@@ -1,0 +1,15 @@
+meta {
+  name: Get Videos
+  type: http
+  seq: 1
+}
+
+get {{base_url}}/rest/v1/videos {
+  headers {
+    apikey: {{supabase_anon_key}}
+    Authorization: Bearer {{access_token}}
+  }
+  query {
+    select: *
+  }
+} 
