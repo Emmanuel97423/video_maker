@@ -22,7 +22,7 @@ export const realEstateLabels = [
 
   // Intérieur de maison
   'living_room', 'bedroom', 'bathroom', 'kitchen', 'dining_room','microwave', 'microwave oven',
-  'hallway', 'corridor', 'staircase', 'stairs', 'interior',
+  'hallway', 'corridor', 'staircase', 'stairs', 'interior', 'lakeside', 'lakeshore',
   'ceiling', 'floor', 'wall', 'furniture', 'fireplace',
   'countertop', 'cabinet', 'closet', 'shower', 'bathtub',
   'sink', 'toilet', 'appliance', 'lighting', 'chandelier',
