@@ -1,5 +1,5 @@
 'use client'
-import {AppSidebar} from "@/components/app-sidebar"
+import { AppSidebar } from "@/components/app-sidebar"
 import {
     Breadcrumb,
     BreadcrumbItem,
@@ -8,20 +8,18 @@ import {
     BreadcrumbPage,
     BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb"
-import {Separator} from "@/components/ui/separator"
+import { Separator } from "@/components/ui/separator"
 import {
     SidebarInset,
     SidebarProvider,
     SidebarTrigger,
 } from "@/components/ui/sidebar"
-import {UploadButton} from "@/components/upload-button";
 
-import { Input } from "@/components/ui/input"
-import { Button } from "@/components/ui/button"
-import { Search, Bell } from "lucide-react"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { useState } from "react"
+import { Button } from "@/components/ui/button"
 import { UploadModal } from "@/components/upload-modal"
+import { Bell } from "lucide-react"
+import { useState } from "react"
 
 export default function HomePage() {
     const [uploadModalOpen, setUploadModalOpen] = useState(false)
@@ -62,7 +60,7 @@ export default function HomePage() {
                         </Breadcrumb>
                     </div>
                 </header>
-              <main className="px-6 py-8">
+              <main className="max-w-7xl mx-auto px-6 py-8">
         {/* New Project Section */}
         <section className="mb-12">
           <h2 className="mb-4 text-xl font-semibold">Nouveau projet</h2>
@@ -105,10 +103,10 @@ export default function HomePage() {
               <option>Status: Tous</option>
             </select>
             <select className="rounded-md border border-gray-200 px-3 py-1.5 text-sm">
-              <option>Filtrer par: Actif</option>
+              <option>Filter by: Active</option>
             </select>
             <select className="rounded-md border border-gray-200 px-3 py-1.5 text-sm">
-              <option>Trier par: Nouveau</option>
+              <option>Sort by: Newest</option>
             </select>
           </div>
 

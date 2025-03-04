@@ -1,11 +1,11 @@
 'use client'
 
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
-import { Button } from "@/components/ui/button"
-import { Upload, Loader2 } from "lucide-react"
-import { useCallback, useState } from "react"
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Upload } from "lucide-react";
+import { useCallback, useState } from "react";
 import { toast } from "sonner"
-import { detectRealEstate } from "@/lib/hugging-face/image-detection"
+import { detectRealEstate } from '@/lib/hugging-face/image-detection';
 
 interface UploadModalProps {
     open: boolean
@@ -17,35 +17,14 @@ export function UploadModal({ open, onOpenChange }: UploadModalProps) {
     const [selectedFile, setSelectedFile] = useState<{ file: File; preview: string } | null>(null);
     const [isProcessing, setIsProcessing] = useState(false);
 
-    const handleFileSelect = useCallback(async (file: File) => {
+    const handleFileSelect = useCallback((file: File) => {
         if (file) {
             if (!file.type.startsWith('image/')) {
                 toast.error('Veuillez sélectionner une image')
                 return
             }
-
-            setIsProcessing(true)
             const preview = URL.createObjectURL(file)
-
-            try {
-                // Vérification si c'est une image immobilière
-                const isRealEstate = await detectRealEstate(preview)
-                
-                if (!isRealEstate) {
-                    toast.error("L'image ne semble pas être une propriété immobilière")
-                    URL.revokeObjectURL(preview)
-                    return
-                }
-
-                setSelectedFile({ file, preview })
-                toast.success("Image immobilière détectée avec succès")
-            } catch (error) {
-                console.error(error)
-                toast.error("Une erreur s'est produite lors de l'analyse de l'image")
-                URL.revokeObjectURL(preview)
-            } finally {
-                setIsProcessing(false)
-            }
+            setSelectedFile({ file, preview })
         }
     }, [])
 
@@ -103,14 +82,11 @@ export function UploadModal({ open, onOpenChange }: UploadModalProps) {
                                     const file = e.target.files?.[0]
                                     if (file) handleFileSelect(file)
                                 }}
-                                disabled={isProcessing}
                             />
                             <div 
                                 className={`flex flex-col items-center justify-center rounded-lg border-2 border-dashed ${
                                     isDragging ? 'border-primary bg-primary/10' : 'border-gray-300'
-                                } p-12 transition-colors hover:bg-gray-50 ${
-                                    isProcessing ? 'opacity-50 cursor-not-allowed' : ''
-                                }`}
+                                } p-12 transition-colors hover:bg-gray-50`}
                                 onDragEnter={(e) => {
                                     e.preventDefault()
                                     e.stopPropagation()
@@ -134,27 +110,18 @@ export function UploadModal({ open, onOpenChange }: UploadModalProps) {
                                     if (file) handleFileSelect(file)
                                 }}
                             >
-                                {isProcessing ? (
-                                    <>
-                                        <Loader2 className="mb-4 h-8 w-8 animate-spin text-gray-400" />
-                                        <h3 className="mb-2 text-lg font-medium">Analyse de l'image en cours...</h3>
-                                    </>
-                                ) : (
-                                    <>
-                                        <Upload className="mb-4 h-8 w-8 text-gray-400" />
-                                        <h3 className="mb-2 text-lg font-medium">Déposez ou parcourez vos photos</h3>
-                                        <p className="mb-4 text-sm text-gray-500">
-                                            Formats: JPG, PNG, GIF Max size: 5MB
-                                        </p>
-                                    </>
-                                )}
+                                <Upload className="mb-4 h-8 w-8 text-gray-400" />
+                                <h3 className="mb-2 text-lg font-medium">Déposez ou parcourez vos photos</h3>
+                                <p className="mb-4 text-sm text-gray-500">
+                                    Formats: JPG, PNG, GIF Max size: 5MB
+                                </p>
                             </div>
                         </label>
                     )}
                 </div>
 
                 {/* Sample Video Section */}
-                {/* <div className="mt-6">
+                <div className="mt-6">
                     <p className="mb-4 text-center text-sm text-gray-500">Or try this sample video</p>
                     <div className="flex items-center gap-3 rounded-lg border p-3">
                         <div className="h-12 w-12 overflow-hidden rounded-lg bg-gray-100">
@@ -169,7 +136,7 @@ export function UploadModal({ open, onOpenChange }: UploadModalProps) {
                             <p className="text-sm text-gray-500">32s</p>
                         </div>
                     </div>
-                </div> */}
+                </div>
             </DialogContent>
         </Dialog>
     )
