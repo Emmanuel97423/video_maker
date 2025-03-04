@@ -21,7 +21,7 @@ export const realEstateLabels = [
   'urban', 'rural', 'compound', 'gated_community', 'akeside, lakeshore',
 
   // Intérieur de maison
-  'living_room', 'bedroom', 'bathroom', 'kitchen', 'dining_room',
+  'living_room', 'bedroom', 'bathroom', 'kitchen', 'dining_room','microwave', 'microwave oven',
   'hallway', 'corridor', 'staircase', 'stairs', 'interior',
   'ceiling', 'floor', 'wall', 'furniture', 'fireplace',
   'countertop', 'cabinet', 'closet', 'shower', 'bathtub',
