@@ -3,9 +3,11 @@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
 import { Upload, Loader2 } from "lucide-react"
-import { useCallback, useState } from "react"
+import { useCallback, useState, useEffect } from "react"
 import { toast } from "sonner"
 import { detectRealEstate } from "@/lib/hugging-face/image-detection"
+import { useVideoGeneration } from "@/hooks/useVideoGeneration"
+import { VIDEO_GENERATION_STATUS } from "@/lib/minimaxi/types"
 
 interface UploadModalProps {
     open: boolean
@@ -16,6 +18,29 @@ export function UploadModal({ open, onOpenChange }: UploadModalProps) {
     const [isDragging, setIsDragging] = useState(false);
     const [selectedFile, setSelectedFile] = useState<{ file: File; preview: string } | null>(null);
     const [isProcessing, setIsProcessing] = useState(false);
+    const { generateVideo, status, downloadUrl, error, isLoading } = useVideoGeneration();
+    const [generationProgress, setGenerationProgress] = useState(0);
+
+    const calculateProgress = useCallback((status: string) => {
+        switch (status) {
+            case VIDEO_GENERATION_STATUS.PREPARING:
+                return 25;
+            case VIDEO_GENERATION_STATUS.QUEUEING:
+                return 50;
+            case VIDEO_GENERATION_STATUS.PROCESSING:
+                return 75;
+            case VIDEO_GENERATION_STATUS.SUCCESS:
+                return 100;
+            default:
+                return 0;
+        }
+    }, []);
+
+    useEffect(() => {
+        if (status) {
+            setGenerationProgress(calculateProgress(status));
+        }
+    }, [status, calculateProgress]);
 
     const handleFileSelect = useCallback(async (file: File) => {
         if (file) {
@@ -64,6 +89,17 @@ export function UploadModal({ open, onOpenChange }: UploadModalProps) {
         onOpenChange(open)
     }, [selectedFile, onOpenChange])
 
+    const handleGenerateVideo = useCallback(async () => {
+        if (!selectedFile) return;
+        
+        try {
+            const prompt = "Camera pullforward";
+            await generateVideo(selectedFile.preview, prompt);
+        } catch (error) {
+            toast.error("Erreur lors de la génération de la vidéo");
+        }
+    }, [selectedFile, generateVideo]);
+
     return (
         <Dialog open={open} onOpenChange={handleOpenChange}>
             <DialogContent className="sm:max-w-[500px]">
@@ -83,14 +119,68 @@ export function UploadModal({ open, onOpenChange }: UploadModalProps) {
                                 style={{ maxHeight: '300px' }}
                             />
                       
-                            <div className="mt-4 flex justify-center">
+                            <div className="mt-4 flex justify-center gap-4">
                                 <Button 
                                     variant="outline"
                                     onClick={handleRemoveFile}
+                                    disabled={isLoading}
                                 >
                                     Changer l'image
                                 </Button>
+                                <Button 
+                                    variant="default"
+                                    onClick={handleGenerateVideo}
+                                    disabled={isLoading}
+                                    className="min-w-[150px] relative"
+                                >
+                                    {isLoading ? (
+                                        <div className="flex items-center gap-2">
+                                            <Loader2 className="h-4 w-4 animate-spin" />
+                                            <span>{generationProgress}%</span>
+                                        </div>
+                                    ) : (
+                                        'Générer une vidéo'
+                                    )}
+                                    {isLoading && (
+                                        <div 
+                                            className="absolute bottom-0 left-0 h-1 bg-primary-foreground/20"
+                                            style={{ 
+                                                width: `${generationProgress}%`,
+                                                transition: 'width 0.5s ease-in-out'
+                                            }}
+                                        />
+                                    )}
+                                </Button>
                             </div>
+
+                            {/* Statut de la génération */}
+                            {status && (
+                                <div className="mt-4">
+                                    <p className="text-center text-sm text-gray-600">
+                                        Statut : {status}
+                                    </p>
+                                </div>
+                            )}
+
+                            {/* Erreur */}
+                            {error && (
+                                <p className="mt-2 text-center text-sm text-red-500">
+                                    {error}
+                                </p>
+                            )}
+
+                            {/* Vidéo générée */}
+                            {downloadUrl && (
+                                <div className="mt-4">
+                                    <p className="mb-2 text-center text-sm text-green-600">
+                                        Vidéo générée avec succès !
+                                    </p>
+                                    <video controls className="w-full rounded-lg">
+                                        <source src={downloadUrl} type="video/mp4" />
+                                        Votre navigateur ne supporte pas la lecture de vidéos.
+                                    </video>
+                                </div>
+                            )}
                         </div>
                     ) : (
                         // Zone de drop
