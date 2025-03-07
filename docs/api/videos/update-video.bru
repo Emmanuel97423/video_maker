@@ -1,0 +1,23 @@
+meta {
+  name: Update Video
+  type: http
+  seq: 3
+}
+
+patch {{base_url}}/rest/v1/videos {
+  headers {
+    apikey: {{supabase_anon_key}}
+    Authorization: Bearer {{access_token}}
+    Content-Type: application/json
+    Prefer: return=minimal-inferred
+  }
+  query {
+    id: eq.{{video_id}}
+  }
+  body: json {
+    {
+      "status": "completed",
+      "video_url": "https://example.com/video.mp4"
+    }
+  }
+} 

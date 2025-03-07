@@ -20,6 +20,7 @@ import { Button } from "@/components/ui/button"
 import { UploadModal } from "@/components/upload-modal"
 import { Bell } from "lucide-react"
 import { useState } from "react"
+import { VideoList } from "@/components/video-list"
 
 export default function HomePage() {
     const [uploadModalOpen, setUploadModalOpen] = useState(false)
@@ -66,7 +67,7 @@ export default function HomePage() {
           <h2 className="mb-4 text-xl font-semibold">Nouveau projet</h2>
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
             {/* Generate Captions Card */}
-            <div className="flex items-center justify-between rounded-lg border border-gray-200 p-4">
+            <div className="flex items-center justify-between rounded-lg border border-gray-200 p-4 cursor-pointer" onClick={() => setUploadModalOpen(true)}>
               <div>
                 <h3 className="font-medium">Genéré une vidéo depuis une photo</h3>
                 {/* <p className="text-sm text-gray-500">Ajoutez des sous-titres et des b-rolls</p> */}
@@ -110,8 +111,11 @@ export default function HomePage() {
             </select>
           </div>
 
-          {/* Empty State */}
-          <div className="flex flex-col items-center justify-center rounded-lg border border-dashed border-gray-300 py-12">
+          {/* Liste des vidéos avec état vide conditionnel */}
+          <VideoList />
+
+          {/* Empty State - sera affiché seulement si VideoList ne retourne rien */}
+          <div className="flex flex-col items-center justify-center rounded-lg border border-dashed border-gray-300 py-12 empty-state">
             <p className="mb-4 text-gray-500">Aucun projet dans ce dossier</p>
             <Button 
                 variant="outline" 
@@ -120,6 +124,15 @@ export default function HomePage() {
                 Importer une photo
             </Button>
           </div>
+
+          <style jsx>{`
+            .empty-state {
+                display: none;
+            }
+            :empty + .empty-state {
+                display: flex;
+            }
+          `}</style>
         </section>
       </main>
 
