@@ -1,0 +1,35 @@
+meta {
+  name: cargo-units creation
+  type: http
+  seq: 2
+}
+
+post {
+  url: http://{{URL}}/api/v1/edi/cargo-units-data
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "cuCode": "IMPO103XX04",
+    "stopOver": {
+      "code": "stopOverCode",
+      "eta": "2024-04-25T18:18:50.015Z",
+      "etd": "2024-04-27T18:18:50.015Z",
+      "vesselName": "ELISA DELMAS"
+    },
+    "transitType": "IMPORT",
+    "claimer": null,
+    "docker": null,
+    "handler": null,
+    "slotter": {
+      "code": "slotterCode",
+      "tin": "slotterTin"
+    },
+    "isoCode": "44R1",
+    "isDangerous": false,
+    "grossWeightInKg": 3400,
+    "eventReceptionDate":"2024-04-25T18:18:50.015Z"
+  }
+}

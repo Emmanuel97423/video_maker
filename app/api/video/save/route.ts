@@ -3,11 +3,11 @@ import type { NextRequest } from 'next/server';
 import { createClientForServer } from '@/utils/supabase/server';
 
 type VideoData = {
-    id: string;
-    imageUrl: string;
-    videoUrl?: string;
+    task_id: string;
+    user_id: string;
+    image_url: string;
+    video_url?: string;
     status: 'processing' | 'completed' | 'failed';
-    userId: string;
     title?: string;
     created_at?: string;
 }
@@ -15,23 +15,43 @@ type VideoData = {
 export async function POST(request: NextRequest) {
     try {
         const supabase = await createClientForServer();
+        
+        // Récupérer l'utilisateur authentifié
+        const { data: { user }, error: authError } = await supabase.auth.getUser();
+        console.log('🔍 [Debug] Utilisateur authentifié:', {
+            userId: user?.id,
+            authError: authError?.message
+        });
+        
+        if (authError || !user) {
+            return NextResponse.json(
+                { error: "Non authentifié" },
+                { status: 401 }
+            );
+        }
+
         const data: VideoData = await request.json();
 
         // Vérification des données requises
-        if (!data.id || !data.imageUrl || !data.status || !data.userId) {
+        if (!data.task_id || !data.image_url || !data.status) {
             return NextResponse.json(
                 { error: "Données manquantes" },
                 { status: 400 }
             );
         }
 
-        // La date de création est gérée automatiquement par Supabase
-        // Pas besoin de l'ajouter manuellement
         const videoData = {
-            ...data,
+            task_id: data.task_id,
+            image_url: data.image_url,
+            video_url: data.video_url,
+            status: data.status,
+            user_id: user.id, // Utiliser l'ID de l'utilisateur authentifié
+            title: data.title
         };
 
-        // Insertion dans la table 'videos'
+        // Insertion avec logging
+        console.log('Tentative insertion avec les données:', videoData);
+        
         const { data: insertedData, error } = await supabase
             .from('videos')
             .insert([videoData])
@@ -39,9 +59,9 @@ export async function POST(request: NextRequest) {
             .single();
 
         if (error) {
-            console.error("Erreur Supabase:", error);
+            console.error("Erreur Supabase détaillée:", error);
             return NextResponse.json(
-                { error: "Erreur lors de la sauvegarde dans Supabase" },
+                { error: "Erreur lors de la sauvegarde dans Supabase", details: error },
                 { status: 500 }
             );
         }
@@ -49,9 +69,9 @@ export async function POST(request: NextRequest) {
         return NextResponse.json(insertedData);
 
     } catch (error) {
-        console.error("Erreur lors de la sauvegarde:", error);
+        console.error("Erreur détaillée:", error);
         return NextResponse.json(
-            { error: "Erreur lors de la sauvegarde de la vidéo" },
+            { error: "Erreur lors de la sauvegarde de la vidéo", details: error },
             { status: 500 }
         );
     }
@@ -62,7 +82,7 @@ export async function PATCH(request: NextRequest) {
     try {
         const supabase = await createClientForServer();
         const data = await request.json();
-        const { id, status, videoUrl } = data;
+        const { id, status, video_url } = data;
 
         if (!id || !status) {
             return NextResponse.json(
@@ -73,7 +93,7 @@ export async function PATCH(request: NextRequest) {
 
         const updateData: Partial<VideoData> = {
             status,
-            ...(videoUrl && { videoUrl }), // Ajoute videoUrl seulement s'il est défini
+            ...(video_url && { video_url }), // Ajoute video_url seulement s'il est défini
         };
 
         const { data: updatedData, error } = await supabase
