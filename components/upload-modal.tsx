@@ -7,7 +7,7 @@ import { useCallback, useState, useEffect } from "react"
 import { toast } from "sonner"
 import { detectRealEstate } from "@/lib/hugging-face/image-detection"
 import { useVideoGeneration } from "@/hooks/useVideoGeneration"
-import { VIDEO_GENERATION_STATUS } from "@/lib/minimaxi/types"
+import { VIDEO_GENERATION_STATUS } from "@/lib/types/kling"
 
 interface UploadModalProps {
     open: boolean
@@ -18,29 +18,7 @@ export function UploadModal({ open, onOpenChange }: UploadModalProps) {
     const [isDragging, setIsDragging] = useState(false);
     const [selectedFile, setSelectedFile] = useState<{ file: File; preview: string } | null>(null);
     const [isProcessing, setIsProcessing] = useState(false);
-    const { generateVideo, status, downloadUrl, error, isLoading } = useVideoGeneration();
-    const [generationProgress, setGenerationProgress] = useState(0);
-
-    const calculateProgress = useCallback((status: string) => {
-        switch (status) {
-            case VIDEO_GENERATION_STATUS.PREPARING:
-                return 25;
-            case VIDEO_GENERATION_STATUS.QUEUEING:
-                return 50;
-            case VIDEO_GENERATION_STATUS.PROCESSING:
-                return 75;
-            case VIDEO_GENERATION_STATUS.SUCCESS:
-                return 100;
-            default:
-                return 0;
-        }
-    }, []);
-
-    useEffect(() => {
-        if (status) {
-            setGenerationProgress(calculateProgress(status));
-        }
-    }, [status, calculateProgress]);
+    const { generateVideo, status, downloadUrl, error, isLoading, progress } = useVideoGeneration();
 
     const handleFileSelect = useCallback(async (file: File) => {
         if (file) {
@@ -136,7 +114,7 @@ export function UploadModal({ open, onOpenChange }: UploadModalProps) {
                                     {isLoading ? (
                                         <div className="flex items-center gap-2">
                                             <Loader2 className="h-4 w-4 animate-spin" />
-                                            <span>{generationProgress}%</span>
+                                            <span>{progress}%</span>
                                         </div>
                                     ) : (
                                         'Générer une vidéo'
@@ -145,7 +123,7 @@ export function UploadModal({ open, onOpenChange }: UploadModalProps) {
                                         <div 
                                             className="absolute bottom-0 left-0 h-1 bg-primary-foreground/20"
                                             style={{ 
-                                                width: `${generationProgress}%`,
+                                                width: `${progress}%`,
                                                 transition: 'width 0.5s ease-in-out'
                                             }}
                                         />
@@ -154,11 +132,25 @@ export function UploadModal({ open, onOpenChange }: UploadModalProps) {
                             </div>
 
                             {/* Statut de la génération */}
-                            {status && (
+                            {isLoading && (
                                 <div className="mt-4">
-                                    <p className="text-center text-sm text-gray-600">
-                                        Statut : {status}
-                                    </p>
+                                    <div className="flex flex-col items-center gap-2">
+                                        <div className="flex items-center gap-2">
+                                            <Loader2 className="h-4 w-4 animate-spin" />
+                                            <span>{progress}%</span>
+                                        </div>
+                                        <p className="text-sm text-gray-600">
+                                            {status === VIDEO_GENERATION_STATUS.SUBMITTED && "Préparation de la génération..."}
+                                            {status === VIDEO_GENERATION_STATUS.PROCESSING && "Génération de la vidéo en cours..."}
+                                            {status === VIDEO_GENERATION_STATUS.SUCCESS && "Finalisation..."}
+                                        </p>
+                                    </div>
+                                    <div className="mt-2 h-2 w-full rounded-full bg-gray-200">
+                                        <div 
+                                            className="h-full rounded-full bg-primary transition-all duration-500"
+                                            style={{ width: `${progress}%` }}
+                                        />
+                                    </div>
                                 </div>
                             )}
 
