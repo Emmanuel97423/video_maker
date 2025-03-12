@@ -4,6 +4,7 @@ import { useUserVideos } from '@/hooks/useUserVideos';
 import { Button } from './ui/button';
 import { Loader2 } from 'lucide-react';
 import { useState } from 'react';
+import { createClient } from '@/utils/supabase/client';
 
 type VideoStatus = 'pending' | 'processing' | 'completed' | 'failed';
 
@@ -13,8 +14,36 @@ interface VideoListProps {
 }
 
 export function VideoList({ limit = 100, offset = 0 }: VideoListProps) {
+    const [videoUrls, setVideoUrls] = useState<{[key: string]: string}>({});
     const { videos, loading, error } = useUserVideos({ limit, offset });
     const [hoveredVideoId, setHoveredVideoId] = useState<string | null>(null);
+
+    async function getVideoUrls(videos: any[]) {
+        const supabase = createClient();
+        const {data: {user}} = await supabase.auth.getUser();
+        
+        return Promise.all(videos.map(async (video) => {
+            const { data, error } = await supabase.storage.from('videos').createSignedUrl(`${user?.id}/${video.name}`, 60 * 60);
+            if (error) {
+                console.error('Erreur lors de la création de la URL de la vidéo:', error);
+                return null;
+            }
+            return {url: data?.signedUrl, name: video.name};
+        }));
+    }
+
+    const handleVideoHover = async (video: any) => {
+        if (!videoUrls[video.id]) {
+            const urls = await getVideoUrls([video]);
+            if (urls[0]?.url) {
+                setVideoUrls(prev => ({
+                    ...prev,
+                    [video.id]: urls[0]?.url || ''
+                }));
+            }
+        }
+        setHoveredVideoId(video.id);
+    };
 
     if (loading) {
         return (
@@ -80,15 +109,25 @@ export function VideoList({ limit = 100, offset = 0 }: VideoListProps) {
                     <div
                         key={video.id}
                         className="border rounded-lg overflow-hidden bg-white shadow-sm"
-                        onMouseEnter={() => setHoveredVideoId(video.id)}
+                        onMouseEnter={() => handleVideoHover(video)}
                         onMouseLeave={() => setHoveredVideoId(null)}
                     >
                         <div className="aspect-video relative">
-                            <img
-                                src={`/api/video/thumbnail/${video.id}`}
-                                alt={video.name || 'Vignette de la vidéo'}
-                                className="object-cover w-full h-full"
-                            />
+                            {hoveredVideoId === video.id && videoUrls[video.id] && status === 'completed' ? (
+                                <video
+                                    src={videoUrls[video.id]}
+                                    className="object-cover w-full h-full"
+                                    autoPlay
+                                    muted
+                                    loop
+                                />
+                            ) : (
+                                <img
+                                    src={`/api/video/thumbnail/${video.id}`}
+                                    alt={video.name || 'Vignette de la vidéo'}
+                                    className="object-cover w-full h-full"
+                                />
+                            )}
                             {status === 'processing' && (
                                 <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
                                     <Loader2 className="h-6 w-6 animate-spin text-white" />
