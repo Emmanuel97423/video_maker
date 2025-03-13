@@ -3,8 +3,9 @@
 import { useUserVideos } from '@/hooks/useUserVideos';
 import { Button } from './ui/button';
 import { Loader2 } from 'lucide-react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { createClient } from '@/utils/supabase/client';
+import React from 'react';
 
 type VideoStatus = 'pending' | 'processing' | 'completed' | 'failed';
 
@@ -15,6 +16,8 @@ interface VideoListProps {
 
 export function VideoList({ limit = 100, offset = 0 }: VideoListProps) {
     const [videoUrls, setVideoUrls] = useState<{[key: string]: string}>({});
+    const [thumbnails, setThumbnails] = useState<{[key: string]: string}>({});
+    const [loadingThumbnails, setLoadingThumbnails] = useState<{[key: string]: boolean}>({});
     const { videos, loading, error } = useUserVideos({ limit, offset });
     const [hoveredVideoId, setHoveredVideoId] = useState<string | null>(null);
 
@@ -23,22 +26,64 @@ export function VideoList({ limit = 100, offset = 0 }: VideoListProps) {
         const {data: {user}} = await supabase.auth.getUser();
         
         return Promise.all(videos.map(async (video) => {
+            setLoadingThumbnails(prev => ({ ...prev, [video.id]: true }));
             const { data, error } = await supabase.storage.from('videos').createSignedUrl(`${user?.id}/${video.name}`, 60 * 60);
             if (error) {
                 console.error('Erreur lors de la création de la URL de la vidéo:', error);
+                setLoadingThumbnails(prev => ({ ...prev, [video.id]: false }));
                 return null;
             }
+            try {
+                await generateThumbnail(data?.signedUrl, video.id);
+            } catch (error) {
+                console.error('Erreur lors de la génération de la miniature:', error);
+            }
+            setLoadingThumbnails(prev => ({ ...prev, [video.id]: false }));
             return {url: data?.signedUrl, name: video.name};
         }));
     }
+
+    // Charger les URLs et les miniatures dès que les vidéos sont disponibles
+    useEffect(() => {
+        if (videos.length > 0) {
+            getVideoUrls(videos);
+        }
+    }, [videos]);
+
+    const generateThumbnail = async (videoUrl: string, videoId: string) => {
+        const video = document.createElement('video');
+        video.crossOrigin = 'anonymous';
+        video.src = videoUrl;
+        
+        return new Promise<void>((resolve) => {
+            video.addEventListener('loadeddata', () => {
+                video.currentTime = 0;
+            });
+
+            video.addEventListener('seeked', () => {
+                const canvas = document.createElement('canvas');
+                canvas.width = video.videoWidth;
+                canvas.height = video.videoHeight;
+                const ctx = canvas.getContext('2d');
+                ctx?.drawImage(video, 0, 0, canvas.width, canvas.height);
+                const thumbnailUrl = canvas.toDataURL('image/jpeg');
+                setThumbnails(prev => ({
+                    ...prev,
+                    [videoId]: thumbnailUrl
+                }));
+                resolve();
+            });
+        });
+    };
 
     const handleVideoHover = async (video: any) => {
         if (!videoUrls[video.id]) {
             const urls = await getVideoUrls([video]);
             if (urls[0]?.url) {
+                const url = urls[0].url;
                 setVideoUrls(prev => ({
                     ...prev,
-                    [video.id]: urls[0]?.url || ''
+                    [video.id]: url
                 }));
             }
         }
@@ -113,20 +158,38 @@ export function VideoList({ limit = 100, offset = 0 }: VideoListProps) {
                         onMouseLeave={() => setHoveredVideoId(null)}
                     >
                         <div className="aspect-video relative">
-                            {hoveredVideoId === video.id && videoUrls[video.id] && status === 'completed' ? (
-                                <video
-                                    src={videoUrls[video.id]}
-                                    className="object-cover w-full h-full"
-                                    autoPlay
-                                    muted
-                                    loop
-                                />
+                            {thumbnails[video.id] ? (
+                                <>
+                                    <img
+                                        src={thumbnails[video.id]}
+                                        alt={video.name || 'Vignette de la vidéo'}
+                                        className={`object-cover w-full h-full absolute inset-0 transition-opacity duration-300 ${
+                                            hoveredVideoId === video.id && videoUrls[video.id] && status === 'completed'
+                                                ? 'opacity-0'
+                                                : 'opacity-100'
+                                        }`}
+                                    />
+                                    {videoUrls[video.id] && status === 'completed' && (
+                                        <video
+                                            src={videoUrls[video.id]}
+                                            className={`object-cover w-full h-full absolute inset-0 transition-opacity duration-300 ${
+                                                hoveredVideoId === video.id ? 'opacity-100' : 'opacity-0'
+                                            }`}
+                                            autoPlay
+                                            muted
+                                            loop
+                                            playsInline
+                                            preload="auto"
+                                        />
+                                    )}
+                                </>
                             ) : (
-                                <img
-                                    src={`/api/video/thumbnail/${video.id}`}
-                                    alt={video.name || 'Vignette de la vidéo'}
-                                    className="object-cover w-full h-full"
-                                />
+                                <div className="w-full h-full bg-gray-100" />
+                            )}
+                            {loadingThumbnails[video.id] && (
+                                <div className="absolute inset-0 bg-black/30 flex items-center justify-center">
+                                    <Loader2 className="h-6 w-6 animate-spin text-white" />
+                                </div>
                             )}
                             {status === 'processing' && (
                                 <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
