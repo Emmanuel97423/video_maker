@@ -1,16 +1,12 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 import { createClientForServer } from '@/utils/supabase/server';
-
-type VideoData = {
-    task_id: string;
-    user_id: string;
-    image_url: string;
-    video_url?: string;
-    status: 'processing' | 'completed' | 'failed';
-    title?: string;
-    created_at?: string;
-}
+import { 
+    SaveVideoRequest, 
+    SaveVideoResponse, 
+    ErrorResponse,
+    VideoData
+} from '@/lib/types/video';
 
 export async function POST(request: NextRequest) {
     try {
@@ -18,26 +14,24 @@ export async function POST(request: NextRequest) {
         
         // Récupérer l'utilisateur authentifié
         const { data: { user }, error: authError } = await supabase.auth.getUser();
-        console.log('🔍 [Debug] Utilisateur authentifié:', {
-            userId: user?.id,
-            authError: authError?.message
-        });
         
         if (authError || !user) {
-            return NextResponse.json(
-                { error: "Non authentifié" },
-                { status: 401 }
-            );
+            const response: ErrorResponse = {
+                success: false,
+                error: "Non authentifié"
+            };
+            return NextResponse.json(response, { status: 401 });
         }
 
-        const data: VideoData = await request.json();
+        const data: SaveVideoRequest = await request.json();
 
         // Vérification des données requises
         if (!data.task_id || !data.image_url || !data.status) {
-            return NextResponse.json(
-                { error: "Données manquantes" },
-                { status: 400 }
-            );
+            const response: ErrorResponse = {
+                success: false,
+                error: "Données manquantes"
+            };
+            return NextResponse.json(response, { status: 400 });
         }
 
         const videoData = {
@@ -45,13 +39,14 @@ export async function POST(request: NextRequest) {
             image_url: data.image_url,
             video_url: data.video_url,
             status: data.status,
-            user_id: user.id, // Utiliser l'ID de l'utilisateur authentifié
-            title: data.title
+            user_id: user.id,
+            title: data.title,
+            prompt: data.prompt,
+            provider: data.provider,
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString()
         };
 
-        // Insertion avec logging
-        console.log('Tentative insertion avec les données:', videoData);
-        
         const { data: insertedData, error } = await supabase
             .from('videos')
             .insert([videoData])
@@ -59,21 +54,29 @@ export async function POST(request: NextRequest) {
             .single();
 
         if (error) {
-            console.error("Erreur Supabase détaillée:", error);
-            return NextResponse.json(
-                { error: "Erreur lors de la sauvegarde dans Supabase", details: error },
-                { status: 500 }
-            );
+            console.error("Erreur Supabase:", error);
+            const response: ErrorResponse = {
+                success: false,
+                error: "Erreur lors de la sauvegarde dans Supabase",
+                details: error
+            };
+            return NextResponse.json(response, { status: 500 });
         }
 
-        return NextResponse.json(insertedData);
+        const response: SaveVideoResponse = {
+            success: true,
+            data: insertedData
+        };
+        return NextResponse.json(response);
 
     } catch (error) {
-        console.error("Erreur détaillée:", error);
-        return NextResponse.json(
-            { error: "Erreur lors de la sauvegarde de la vidéo", details: error },
-            { status: 500 }
-        );
+        console.error("Erreur:", error);
+        const response: ErrorResponse = {
+            success: false,
+            error: "Erreur lors de la sauvegarde de la vidéo",
+            details: error
+        };
+        return NextResponse.json(response, { status: 500 });
     }
 }
 

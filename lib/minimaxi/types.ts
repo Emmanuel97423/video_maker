@@ -15,7 +15,7 @@ export interface VideoGenerationPayload {
   first_frame_image?: string;
 }
 
-export const VIDEO_GENERATION_STATUS = {
+export const VIDEO_GENERATION_MINIMAX_STATUS = {
   PREPARING: 'Preparing',
   QUEUEING: 'Queueing',
   PROCESSING: 'Processing',
