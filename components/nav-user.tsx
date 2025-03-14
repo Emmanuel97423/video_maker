@@ -81,14 +81,14 @@ export function NavUser({
                             </div>
                         </DropdownMenuLabel>
                         <DropdownMenuSeparator />
-                        <DropdownMenuGroup>
+                        {/* <DropdownMenuGroup>
                             <DropdownMenuItem>
                                 <Sparkles />
                                 Upgrade to Pro
                             </DropdownMenuItem>
-                        </DropdownMenuGroup>
-                        <DropdownMenuSeparator />
-                        <DropdownMenuGroup>
+                        </DropdownMenuGroup> */}
+                        {/* <DropdownMenuSeparator /> */}
+                        {/* <DropdownMenuGroup>
                             <DropdownMenuItem>
                                 <BadgeCheck />
                                 Account
@@ -101,11 +101,11 @@ export function NavUser({
                                 <Bell />
                                 Notifications
                             </DropdownMenuItem>
-                        </DropdownMenuGroup>
-                        <DropdownMenuSeparator />
+                        </DropdownMenuGroup> */}
+                        {/* <DropdownMenuSeparator /> */}
                         <DropdownMenuItem onSelect={signout}>
                             <LogOut />
-                            Log out
+                            Se déconnecter
                         </DropdownMenuItem>
                     </DropdownMenuContent>
                 </DropdownMenu>

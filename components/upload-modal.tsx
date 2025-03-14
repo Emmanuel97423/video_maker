@@ -8,6 +8,7 @@ import { toast } from "sonner"
 import { detectRealEstate } from "@/lib/hugging-face/image-detection"
 import { useVideoGeneration } from "@/hooks/useVideoGeneration"
 import { VIDEO_GENERATION_STATUS } from "@/lib/types/kling"
+import Image from "next/image"
 
 interface UploadModalProps {
     open: boolean
@@ -18,7 +19,7 @@ export function UploadModal({ open, onOpenChange }: UploadModalProps) {
     const [isDragging, setIsDragging] = useState(false);
     const [selectedFile, setSelectedFile] = useState<{ file: File; preview: string } | null>(null);
     const [isProcessing, setIsProcessing] = useState(false);
-    const { generateVideo, status, downloadUrl, error, isLoading, progress } = useVideoGeneration();
+    const { generateVideo, status, error, isLoading, progress, message, downloadUrl } = useVideoGeneration();
 
     const handleFileSelect = useCallback(async (file: File) => {
         if (file) {
@@ -90,20 +91,22 @@ export function UploadModal({ open, onOpenChange }: UploadModalProps) {
                     {selectedFile ? (
                         // Aperçu de l'image
                         <div className="relative">
-                            <img 
+                            <Image 
                                 src={selectedFile.preview}
                                 alt="Aperçu"
                                 className="w-full rounded-lg object-cover"
+                                width={600}
+                                height={300}
                                 style={{ maxHeight: '300px' }}
                             />
-                      
+                          
                             <div className="mt-4 flex justify-center gap-4">
                                 <Button 
                                     variant="outline"
                                     onClick={handleRemoveFile}
                                     disabled={isLoading}
                                 >
-                                    Changer l'image
+                                    Changer l&apos;image
                                 </Button>
                                 <Button 
                                     variant="default"
@@ -140,14 +143,22 @@ export function UploadModal({ open, onOpenChange }: UploadModalProps) {
                                             <span>{progress}%</span>
                                         </div>
                                         <p className="text-sm text-gray-600">
-                                            {status === VIDEO_GENERATION_STATUS.SUBMITTED && "Préparation de la génération..."}
-                                            {status === VIDEO_GENERATION_STATUS.PROCESSING && "Génération de la vidéo en cours..."}
-                                            {status === VIDEO_GENERATION_STATUS.SUCCESS && "Finalisation..."}
+                                            {status === VIDEO_GENERATION_STATUS.SUBMITTED && "Initialisation de la génération..."}
+                                            {status === VIDEO_GENERATION_STATUS.PROCESSING && "Création de votre vidéo en cours..."}
+                                            {status === VIDEO_GENERATION_STATUS.SUCCESS && "Finalisation de votre vidéo..."}
+                                            {status === VIDEO_GENERATION_STATUS.FAILED && "Échec de la génération"}
                                         </p>
+                                        {message && (
+                                            <p className="text-sm text-gray-500 text-center">
+                                                {message}
+                                            </p>
+                                        )}
                                     </div>
                                     <div className="mt-2 h-2 w-full rounded-full bg-gray-200">
                                         <div 
-                                            className="h-full rounded-full bg-primary transition-all duration-500"
+                                            className={`h-full rounded-full transition-all duration-500 ${
+                                                status === VIDEO_GENERATION_STATUS.FAILED ? 'bg-red-500' : 'bg-primary'
+                                            }`}
                                             style={{ width: `${progress}%` }}
                                         />
                                     </div>

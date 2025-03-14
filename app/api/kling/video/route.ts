@@ -1,6 +1,5 @@
-import { NextResponse } from 'next/server';
-import { headers } from 'next/headers';
 import { KlingAuthService } from '@/lib/kling/auth-service';
+import { NextResponse } from 'next/server';
 
 const KLING_API_URL = process.env.NEXT_PUBLIC_KLING_API_URL;
 

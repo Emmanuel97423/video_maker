@@ -11,70 +11,71 @@ import { toast } from 'sonner';
 
 
 export function useVideoGeneration() {
-  const [status, setStatus] = useState<VideoGenerationStatus>(VIDEO_GENERATION_STATUS.SUBMITTED);
+  const [taskId, setTaskId] = useState<string | null>(null);
+  const [status, setStatus] = useState<VideoGenerationStatus | null>(null);
   const [error, setError] = useState('');
   const [message, setMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [downloadUrl, setDownloadUrl] = useState('');
-  const [progress, setProgress] = useState(0);
+  const [progress, setProgress] = useState<number>(0);
   const pollingRef = useRef<NodeJS.Timeout | undefined>(undefined);
-  const provider = 'kling';
+  const [downloadUrl, setDownloadUrl] = useState<string | null>(null);
 
-
-  // Fonction pour vérifier le statut
   const checkStatus = useCallback(async (taskId: string) => {
     try {
       const result = await KlingVideoService.queryVideoGeneration(taskId);
-      
       setStatus(result.status);
       setMessage(result.message || '');
 
-      switch (result.status) {
-        case VIDEO_GENERATION_STATUS.SUCCESS:
-          if (result.fileId) {
-            setProgress(100);
-            await save({
-              videoUrl: result.fileId,
-              taskId,
-              prompt: '',
-              imageUrl: ''
-            });
-            if (pollingRef.current) {
-              clearInterval(pollingRef.current);
-            }
-          }
-          break;
+      if (result.status === VIDEO_GENERATION_STATUS.SUCCESS && result.fileId) {
+        setProgress(100);
+        setDownloadUrl(result.fileId);
+        const { data: { user } } = await createClient().auth.getUser();
+        
+        // Sauvegarder uniquement dans le storage
+        const response = await fetch('/api/video/storage', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ 
+            userId: user?.id, 
+            videoUrl: result.fileId,
+            taskId: taskId 
+          })
+        });
 
-        case VIDEO_GENERATION_STATUS.PROCESSING:
-        case VIDEO_GENERATION_STATUS.SUBMITTED:
-          setProgress((prev) => Math.min(90, prev + 5));
-          break;
-
-        case VIDEO_GENERATION_STATUS.FAILED:
-          setError(result.message || 'Échec de la génération');
-          if (pollingRef.current) {
-            clearInterval(pollingRef.current);
-          }
-          break;
+        if (!response.ok) {
+          throw new Error('Échec de la sauvegarde de la vidéo');
+        }
+        
+        if (pollingRef.current) {
+          clearInterval(pollingRef.current);
+          pollingRef.current = undefined;
+        }
+        setIsLoading(false);
+      } else if (result.status === VIDEO_GENERATION_STATUS.FAILED) {
+        setError(result.message || 'Échec de la génération');
+        if (pollingRef.current) {
+          clearInterval(pollingRef.current);
+          pollingRef.current = undefined;
+        }
+        setIsLoading(false);
+      } else if (result.status === VIDEO_GENERATION_STATUS.PROCESSING) {
+        // Pendant le traitement, on augmente progressivement jusqu'à 90%
+        setProgress((prev) => Math.min(90, prev + 10));
+      } else if (result.status === VIDEO_GENERATION_STATUS.SUBMITTED) {
+        // Pour l'état soumis, on reste à un pourcentage bas
+        setProgress((prev) => Math.min(20, prev));
       }
-
-      return result;
     } catch (error) {
-      console.error('Erreur lors de la vérification:', error);
+      console.error('Erreur polling:', error);
       setError(error instanceof Error ? error.message : 'Erreur inconnue');
       if (pollingRef.current) {
         clearInterval(pollingRef.current);
+        pollingRef.current = undefined;
       }
-      throw error;
+      setIsLoading(false);
     }
   }, []);
 
-  /**
-   * Génère une vidéo à partir d'une image et d'un prompt
-   * @param imageUrl - L'URL de l'image source
-   * @param prompt - Le texte descriptif pour guider la génération
-   * @throws {Error} Si la génération échoue
-   */
   const generateVideo = useCallback(async (imageUrl: string, prompt: string) => {
     setIsLoading(true);
     setError('');
@@ -86,91 +87,38 @@ export function useVideoGeneration() {
       const taskId = await KlingVideoService.invokeVideoGeneration(imageUrl, prompt);
       setProgress(10);
 
-      // Démarrer le polling
-      if (pollingRef.current) {
-        clearInterval(pollingRef.current);
-      }
-
       // Premier check immédiat
       await checkStatus(taskId);
 
-      // Puis toutes les 5 secondes
-      pollingRef.current = setInterval(async () => {
-        try {
-          const result = await checkStatus(taskId);
-          if (result.status === VIDEO_GENERATION_STATUS.SUCCESS || 
-              result.status === VIDEO_GENERATION_STATUS.FAILED) {
-            clearInterval(pollingRef.current);
-          }
-        } catch (error) {
-          clearInterval(pollingRef.current);
-          setError('Erreur lors de la vérification du statut');
-        }
-      }, 5000);
+      // Puis toutes les 10 secondes
+      pollingRef.current = setInterval(() => checkStatus(taskId), 20000);
 
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Une erreur est survenue';
-      setError(errorMessage);
+      setError(err instanceof Error ? err.message : 'Une erreur est survenue');
       setStatus(VIDEO_GENERATION_STATUS.FAILED);
-      throw err;
-    } finally {
       setIsLoading(false);
     }
   }, [checkStatus]);
 
-  // Nettoyage à la destruction du composant
+  // Cleanup
   useEffect(() => {
     return () => {
       if (pollingRef.current) {
         clearInterval(pollingRef.current);
+        pollingRef.current = undefined;
       }
     };
   }, []);
 
-  /**
-   * Sauvegarde une vidéo générée dans le stockage
-   * @param params - Les paramètres de sauvegarde
-   * @param params.videoUrl - L'URL de la vidéo à sauvegarder
-   * @param params.taskId - L'identifiant unique de la tâche
-   * @param params.prompt - Le prompt utilisé pour la génération
-   * @param params.imageUrl - L'URL de l'image source (optionnel)
-   * @throws {Error} Si la sauvegarde échoue
-   */
-  const save = useCallback(async ({  videoUrl }: {
-    userId: string;
-    videoUrl: string;
-  }) => {
-    try {
-      const { data: { user } } = await createClient().auth.getUser();
-      const response = await fetch('/api/video/storage', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ userId: user?.id, videoUrl })
-      });
-
-      if (!response.ok) {
-        throw new Error('Erreur lors de la sauvegarde');
-      }
-
-      const data = await response.json();
-      setDownloadUrl(data.url);
-      toast.success('Vidéo sauvegardée avec succès');
-    } catch (error) {
-      const message = error instanceof Error ? error.message : "Erreur lors de la sauvegarde";
-      toast.error(message);
-      throw error;
-    }
-  }, []);
-
   return {
     generateVideo,
-    save,
     status,
     error,
     message,
     isLoading,
-    downloadUrl,
     progress,
-    provider
+    taskId,
+    setTaskId,
+    downloadUrl
   };
 } 

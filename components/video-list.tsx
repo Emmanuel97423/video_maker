@@ -6,6 +6,8 @@ import { Loader2 } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { createClient } from '@/utils/supabase/client';
 import React from 'react';
+import { downloadVideo } from '@/utils/downloadVideo';
+import { toast } from "sonner"
 
 type VideoStatus = 'pending' | 'processing' | 'completed' | 'failed';
 
@@ -90,6 +92,23 @@ export function VideoList({ limit = 100, offset = 0 }: VideoListProps) {
         setHoveredVideoId(video.id);
     };
 
+    const handleDownload = async (video: any) => {
+        try {
+            if (!videoUrls[video.id]) {
+                const urls = await getVideoUrls([video]);
+                if (urls[0]?.url) {
+                    await downloadVideo(urls[0].url, video.name);
+                    toast.success("La vidéo a été téléchargée avec succès");
+                }
+            } else {
+                await downloadVideo(videoUrls[video.id], video.name);
+                toast.success("La vidéo a été téléchargée avec succès");
+            }
+        } catch (error) {
+            toast.error("Impossible de télécharger la vidéo");
+        }
+    };
+
     if (loading) {
         return (
             <div className="flex justify-center items-center py-8">
@@ -154,10 +173,12 @@ export function VideoList({ limit = 100, offset = 0 }: VideoListProps) {
                     <div
                         key={video.id}
                         className="border rounded-lg overflow-hidden bg-white shadow-sm"
-                        onMouseEnter={() => handleVideoHover(video)}
-                        onMouseLeave={() => setHoveredVideoId(null)}
+                      
                     >
-                        <div className="aspect-video relative">
+                        <div className="aspect-video relative"
+                          onMouseEnter={() => handleVideoHover(video)}
+                          onMouseLeave={() => setHoveredVideoId(null)}
+                        >
                             {thumbnails[video.id] ? (
                                 <>
                                     <img
@@ -209,15 +230,14 @@ export function VideoList({ limit = 100, offset = 0 }: VideoListProps) {
                                     <Button
                                         variant="outline"
                                         size="sm"
-                                        asChild
+                                        onClick={() => handleDownload(video)}
+                                        disabled={loadingThumbnails[video.id]}
                                     >
-                                        <a 
-                                            href={`/api/video/stream/${video.id}`} 
-                                            target="_blank" 
-                                            rel="noopener noreferrer"
-                                        >
-                                            Voir la vidéo
-                                        </a>
+                                        {loadingThumbnails[video.id] ? (
+                                            <Loader2 className="h-4 w-4 animate-spin" />
+                                        ) : (
+                                            'Télécharger'
+                                        )}
                                     </Button>
                                 )}
                             </div>
