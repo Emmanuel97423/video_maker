@@ -8,6 +8,7 @@ import { toast } from "sonner"
 import { detectRealEstate } from "@/lib/hugging-face/image-detection"
 import { useVideoGeneration } from "@/hooks/useVideoGeneration"
 import { VIDEO_GENERATION_STATUS } from "@/lib/types/kling"
+import Image from "next/image"
 
 interface UploadModalProps {
     open: boolean
@@ -90,20 +91,22 @@ export function UploadModal({ open, onOpenChange }: UploadModalProps) {
                     {selectedFile ? (
                         // Aperçu de l'image
                         <div className="relative">
-                            <img 
+                            <Image 
                                 src={selectedFile.preview}
                                 alt="Aperçu"
                                 className="w-full rounded-lg object-cover"
+                                width={600}
+                                height={300}
                                 style={{ maxHeight: '300px' }}
                             />
-                      
+                          
                             <div className="mt-4 flex justify-center gap-4">
                                 <Button 
                                     variant="outline"
                                     onClick={handleRemoveFile}
                                     disabled={isLoading}
                                 >
-                                    Changer l'image
+                                    Changer l&apos;image
                                 </Button>
                                 <Button 
                                     variant="default"

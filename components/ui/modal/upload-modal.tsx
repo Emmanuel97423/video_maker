@@ -1,11 +1,11 @@
 'use client'
 
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Upload } from "lucide-react";
+import Image from 'next/image';
 import { useCallback, useState } from "react";
-import { toast } from "sonner"
-import { detectRealEstate } from '@/lib/hugging-face/image-detection';
+import { toast } from "sonner";
 
 interface UploadModalProps {
     open: boolean
@@ -55,11 +55,13 @@ export function UploadModal({ open, onOpenChange }: UploadModalProps) {
                     {selectedFile ? (
                         // Aperçu de l'image
                         <div className="relative">
-                            <img 
+                            <Image 
                                 src={selectedFile.preview}
                                 alt="Aperçu"
                                 className="w-full rounded-lg object-cover"
                                 style={{ maxHeight: '300px' }}
+                                width={500}
+                                height={300}
                             />
                       
                             <div className="mt-4 flex justify-center">
@@ -125,10 +127,12 @@ export function UploadModal({ open, onOpenChange }: UploadModalProps) {
                     <p className="mb-4 text-center text-sm text-gray-500">Or try this sample video</p>
                     <div className="flex items-center gap-3 rounded-lg border p-3">
                         <div className="h-12 w-12 overflow-hidden rounded-lg bg-gray-100">
-                            <img 
+                            <Image 
                                 src="/welcome-thumbnail.jpg" 
                                 alt="Welcome video thumbnail"
                                 className="h-full w-full object-cover"
+                                width={48}
+                                height={48}
                             />
                         </div>
                         <div>
