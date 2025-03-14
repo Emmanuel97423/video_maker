@@ -21,11 +21,14 @@ export const realEstateLabels = [
   'urban', 'rural', 'compound', 'gated_community', 'akeside, lakeshore',
 
   // Intérieur de maison
-  'living_room', 'bedroom', 'bathroom', 'kitchen', 'dining_room','microwave', 'microwave oven',
+  'living_room', 'bedroom', 'bathroom', 'kitchen', 'dining_room', 'microwave', 'microwave oven',
   'hallway', 'corridor', 'staircase', 'stairs', 'interior', 'lakeside', 'lakeshore',
   'ceiling', 'floor', 'wall', 'furniture', 'fireplace',
   'countertop', 'cabinet', 'closet', 'shower', 'bathtub',
   'sink', 'toilet', 'appliance', 'lighting', 'chandelier',
   'indoor', 'room', 'open_space', 'storage', 'pantry',
-  'laundry_room', 'office', 'study', 'den', 'basement', 'sliding door'
+  'laundry_room', 'office', 'study', 'den', 'basement', 'sliding door',
+
+  // Mobilier et éléments extérieurs
+  'bench', 'chair', 'car', 'potted plant'
 ] as const 
