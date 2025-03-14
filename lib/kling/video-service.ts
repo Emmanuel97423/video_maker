@@ -88,7 +88,7 @@ export class KlingVideoService {
     }
 
     static async queryVideoGeneration(taskId: string): Promise<VideoGenerationResult> {
-        console.log(`🔍 [Kling] Vérification statut tâche: ${taskId}`);
+        console.log(`🔍 [Kling] Début vérification statut tâche: ${taskId}`);
         
         try {
             const data = await this.makeRequest<KlingResponse<{
@@ -105,19 +105,25 @@ export class KlingVideoService {
             }>>(`/v1/videos/image2video/${taskId}`, null);
 
             const taskData = data.data;
-            console.log('📊 [Kling] Statut reçu:', {
-                taskId: taskData.task_id,
+            console.log('📊 [Kling] Analyse statut:', {
                 status: taskData.task_status,
-                message: taskData.task_status_msg,
-                hasVideos: !!taskData.task_result?.videos?.length
+                hasVideos: !!taskData.task_result?.videos?.length,
+                videosCount: taskData.task_result?.videos?.length || 0
             });
 
-            if (taskData.task_status === 'succeed' && taskData.task_result?.videos?.length) {
-                return {
-                    status: VIDEO_GENERATION_STATUS.SUCCESS,
-                    fileId: taskData.task_result.videos[0].url,
-                    message: 'Vidéo générée avec succès'
-                };
+            if (taskData.task_status === 'succeed') {
+                if (taskData.task_result?.videos?.length) {
+                    return {
+                        status: VIDEO_GENERATION_STATUS.SUCCESS,
+                        fileId: taskData.task_result.videos[0].url,
+                        message: 'Vidéo générée avec succès'
+                    };
+                } else {
+                    return {
+                        status: VIDEO_GENERATION_STATUS.FAILED,
+                        message: 'Vidéo non trouvée dans la réponse'
+                    };
+                }
             }
 
             const statusMap: Record<KlingTaskStatus, VideoGenerationResult> = {
@@ -134,8 +140,8 @@ export class KlingVideoService {
                     message: taskData.task_status_msg || 'Échec de la génération'
                 },
                 'succeed': {
-                    status: VIDEO_GENERATION_STATUS.FAILED,
-                    message: 'Vidéo non trouvée dans la réponse'
+                    status: VIDEO_GENERATION_STATUS.SUCCESS,
+                    message: 'Vidéo générée avec succès'
                 }
             };
 

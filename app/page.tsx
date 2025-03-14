@@ -96,7 +96,7 @@ export default function HomePage() {
         {/* All Projects Section */}
         <section>
           <h2 className="mb-4 text-xl font-semibold">Tous les projets</h2>
-          <div className="mb-8 flex flex-wrap gap-4">
+          {/* <div className="mb-8 flex flex-wrap gap-4">
             <select className="rounded-md border border-gray-200 px-3 py-1.5 text-sm">
               <option>Type: Tous</option>
             </select>
@@ -109,7 +109,7 @@ export default function HomePage() {
             <select className="rounded-md border border-gray-200 px-3 py-1.5 text-sm">
               <option>Sort by: Newest</option>
             </select>
-          </div>
+          </div> */}
 
           {/* Liste des vidéos avec état vide conditionnel */}
           <VideoList />

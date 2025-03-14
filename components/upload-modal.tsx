@@ -18,7 +18,7 @@ export function UploadModal({ open, onOpenChange }: UploadModalProps) {
     const [isDragging, setIsDragging] = useState(false);
     const [selectedFile, setSelectedFile] = useState<{ file: File; preview: string } | null>(null);
     const [isProcessing, setIsProcessing] = useState(false);
-    const { generateVideo, status, downloadUrl, error, isLoading, progress } = useVideoGeneration();
+    const { generateVideo, status, error, isLoading, progress, message, downloadUrl } = useVideoGeneration();
 
     const handleFileSelect = useCallback(async (file: File) => {
         if (file) {
@@ -140,14 +140,22 @@ export function UploadModal({ open, onOpenChange }: UploadModalProps) {
                                             <span>{progress}%</span>
                                         </div>
                                         <p className="text-sm text-gray-600">
-                                            {status === VIDEO_GENERATION_STATUS.SUBMITTED && "Préparation de la génération..."}
-                                            {status === VIDEO_GENERATION_STATUS.PROCESSING && "Génération de la vidéo en cours..."}
-                                            {status === VIDEO_GENERATION_STATUS.SUCCESS && "Finalisation..."}
+                                            {status === VIDEO_GENERATION_STATUS.SUBMITTED && "Initialisation de la génération..."}
+                                            {status === VIDEO_GENERATION_STATUS.PROCESSING && "Création de votre vidéo en cours..."}
+                                            {status === VIDEO_GENERATION_STATUS.SUCCESS && "Finalisation de votre vidéo..."}
+                                            {status === VIDEO_GENERATION_STATUS.FAILED && "Échec de la génération"}
                                         </p>
+                                        {message && (
+                                            <p className="text-sm text-gray-500 text-center">
+                                                {message}
+                                            </p>
+                                        )}
                                     </div>
                                     <div className="mt-2 h-2 w-full rounded-full bg-gray-200">
                                         <div 
-                                            className="h-full rounded-full bg-primary transition-all duration-500"
+                                            className={`h-full rounded-full transition-all duration-500 ${
+                                                status === VIDEO_GENERATION_STATUS.FAILED ? 'bg-red-500' : 'bg-primary'
+                                            }`}
                                             style={{ width: `${progress}%` }}
                                         />
                                     </div>

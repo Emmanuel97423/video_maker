@@ -2,7 +2,6 @@ import { createClientForServer } from '@/utils/supabase/server';
 import { NextResponse } from 'next/server';
 
 import { listUserVideos } from './controllers/videoListController';
-import { createClient } from '@/utils/supabase/client';
 
 export async function GET(request: Request) {
     try {

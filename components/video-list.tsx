@@ -212,8 +212,7 @@ export function VideoList({ limit = 100, offset = 0 }: VideoListProps) {
                                         asChild
                                     >
                                         <a 
-                                            href={`/api/video/stream/${video.id}`} 
-                                            target="_blank" 
+                                            href={`/edit/${video.name}`}
                                             rel="noopener noreferrer"
                                         >
                                             Voir la vidéo
