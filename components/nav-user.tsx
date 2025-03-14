@@ -1,12 +1,8 @@
 "use client"
 
 import {
-    BadgeCheck,
-    Bell,
     ChevronsUpDown,
-    CreditCard,
-    LogOut,
-    Sparkles,
+    LogOut
 } from "lucide-react"
 
 import {
@@ -17,11 +13,10 @@ import {
 import {
     DropdownMenu,
     DropdownMenuContent,
-    DropdownMenuGroup,
     DropdownMenuItem,
     DropdownMenuLabel,
     DropdownMenuSeparator,
-    DropdownMenuTrigger,
+    DropdownMenuTrigger
 } from "@/components/ui/dropdown-menu"
 import {
     SidebarMenu,
@@ -29,7 +24,8 @@ import {
     SidebarMenuItem,
     useSidebar,
 } from "@/components/ui/sidebar"
-import {signout} from "@/lib/auth-actions";
+import { createClient } from "@/utils/supabase/client"
+import { useRouter } from "next/navigation"
 
 export function NavUser({
                             user,
@@ -41,6 +37,17 @@ export function NavUser({
     }
 }) {
     const { isMobile } = useSidebar()
+    const router = useRouter();
+    const supabase = createClient();
+
+    const handleSignOut = async () => {
+        const { error } = await supabase.auth.signOut();
+        if (error) {
+            console.error('Erreur lors de la déconnexion:', error);
+            return;
+        }
+        router.push('/auth/login');
+    };
 
     return (
         <SidebarMenu>
@@ -103,7 +110,7 @@ export function NavUser({
                             </DropdownMenuItem>
                         </DropdownMenuGroup> */}
                         {/* <DropdownMenuSeparator /> */}
-                        <DropdownMenuItem onSelect={signout}>
+                        <DropdownMenuItem onSelect={handleSignOut}>
                             <LogOut />
                             Se déconnecter
                         </DropdownMenuItem>
