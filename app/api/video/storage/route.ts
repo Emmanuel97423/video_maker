@@ -2,10 +2,11 @@
  * Configuration du client Supabase et constantes
  */
 import { createClientForServer } from '@/utils/supabase/server';
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import {
     createSupabaseClient,
-    uploadVideoToStorage
+    uploadVideoToStorage,
+    saveVideoMetadata
 } from './controllers/videoController';
 
 interface StorageRequest {
@@ -23,42 +24,75 @@ interface StorageRequest {
  * @returns {Promise<NextResponse>} Réponse contenant l'URL de la vidéo stockée et les métadonnées
  * @throws {Error} Si l'authentification échoue ou si le stockage rencontre une erreur
  */
-export async function POST(request: Request): Promise<NextResponse> {
+export async function POST(request: NextRequest): Promise<NextResponse> {
     try {
-        const { userId, videoUrl }: StorageRequest = await request.json();
-        
-        
-        if (!userId) {
-            console.log('🔍 [Debug] Utilisateur non authentifié:', {
-            });
+        const body = await request.json();
+        console.log('Données reçues:', body);
+
+        if (!body.videoUrl || !body.taskId || !body.userId) {
             return NextResponse.json(
-                { error: "Non authentifié" },
-                { status: 401 }
+                { error: 'Données manquantes' },
+                { status: 400 }
             );
         }
 
-        // Initialisation du client Supabase
         const supabase = createSupabaseClient();
-
-        // Téléchargement de la vidéo
-        const response = await fetch(videoUrl);
-        if (!response.ok) {
-            throw new Error(`Erreur lors du téléchargement de la vidéo: ${response.statusText}`);
-        }
-        const videoBlob = await response.blob();
-
-        // Upload vers Supabase Storage
-        await uploadVideoToStorage(supabase, userId, videoBlob);
-
-        return NextResponse.json({ 
-            success: true,
-            message: 'Vidéo uploadée avec succès'
+        const result = await saveVideoMetadata(supabase, {
+            taskId: body.taskId,
+            userId: body.userId,
+            videoUrl: body.videoUrl,
+            imageUrl: body.imageUrl
         });
 
+        return NextResponse.json(result);
+
     } catch (error) {
-        console.error('Erreur:', error);
+        console.error('Erreur dans la route POST /api/video/storage:', error);
         return NextResponse.json(
-            { error: error instanceof Error ? error.message : 'Erreur lors de l\'upload de la vidéo' },
+            { error: error instanceof Error ? error.message : 'Erreur inconnue' },
+            { status: 500 }
+        );
+    }
+}
+
+export async function DELETE(request: NextRequest) {
+    try {
+        const taskId = request.nextUrl.searchParams.get('taskId');
+        if (!taskId) {
+            return NextResponse.json(
+                { error: 'TaskId manquant' },
+                { status: 400 }
+            );
+        }
+
+        const supabase = createSupabaseClient();
+        
+        // Supprimer la vidéo du stockage
+        const { error: storageError } = await supabase
+            .storage
+            .from('videos')
+            .remove([`${taskId}/video.mp4`]);
+
+        if (storageError) {
+            throw new Error(`Erreur lors de la suppression du fichier: ${storageError.message}`);
+        }
+
+        // Supprimer les métadonnées
+        const { error: dbError } = await supabase
+            .from('videos')
+            .delete()
+            .eq('task_id', taskId);
+
+        if (dbError) {
+            throw new Error(`Erreur lors de la suppression des métadonnées: ${dbError.message}`);
+        }
+
+        return NextResponse.json({ success: true });
+
+    } catch (error) {
+        console.error('Erreur dans la route DELETE /api/video/storage:', error);
+        return NextResponse.json(
+            { error: error instanceof Error ? error.message : 'Erreur inconnue' },
             { status: 500 }
         );
     }

@@ -8,6 +8,8 @@ import { toast } from "sonner"
 import { detectRealEstate } from "../lib/hugging-face/image-detection"
 import { useVideoGeneration } from "@/hooks/useVideoGeneration"
 import { VIDEO_GENERATION_STATUS } from "@/lib/types/kling"
+import { VideoServiceProvider } from "@/lib/types/video-service"
+import { UnifiedVideoService } from "@/lib/video-service"
 import Image from "next/image"
 
 interface UploadModalProps {
@@ -19,7 +21,13 @@ export function UploadModal({ open, onOpenChange }: UploadModalProps) {
     const [isDragging, setIsDragging] = useState(false);
     const [selectedFile, setSelectedFile] = useState<{ file: File; preview: string } | null>(null);
     const [isProcessing, setIsProcessing] = useState(false);
+    const [provider, setProvider] = useState<VideoServiceProvider>('kling');
     const { generateVideo, status, error, isLoading, progress, message, downloadUrl } = useVideoGeneration();
+
+    const handleProviderChange = useCallback((newProvider: VideoServiceProvider) => {
+        UnifiedVideoService.setProvider(newProvider);
+        setProvider(newProvider);
+    }, []);
 
     const handleFileSelect = useCallback(async (file: File) => {
         if (file) {
@@ -85,6 +93,26 @@ export function UploadModal({ open, onOpenChange }: UploadModalProps) {
                 <DialogHeader>
                     <DialogTitle className="text-center text-xl font-semibold">Importer votre photo</DialogTitle>
                 </DialogHeader>
+
+                {/* Sélection du Provider */}
+                <div className="flex justify-center gap-2 mb-4">
+                    <Button
+                        variant={provider === 'kling' ? 'default' : 'outline'}
+                        size="sm"
+                        onClick={() => handleProviderChange('kling')}
+                        className="w-24"
+                    >
+                        Kling
+                    </Button>
+                    <Button
+                        variant={provider === 'minimax' ? 'default' : 'outline'}
+                        size="sm"
+                        onClick={() => handleProviderChange('minimax')}
+                        className="w-24"
+                    >
+                        Minimax
+                    </Button>
+                </div>
 
                 {/* Upload Zone */}
                 <div className="mt-4">
