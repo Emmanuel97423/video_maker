@@ -8,7 +8,8 @@ import {NavProjects} from "@/components/nav-projects"
 import {NavUser} from "@/components/nav-user"
 import {TeamSwitcher} from "@/components/team-switcher"
 import {Sidebar, SidebarContent, SidebarFooter, SidebarHeader, SidebarRail,} from "@/components/ui/sidebar"
-import {NavFooter} from "@/components/nav-footer";
+import {NavFooter} from "@/components/nav-footer"
+import {NavTrial} from "@/components/nav-trial"
 
 // This is sample data.
 const data = {
@@ -160,6 +161,7 @@ export function AppSidebar({...props}: React.ComponentProps<typeof Sidebar>) {
             </SidebarContent>
             <SidebarFooter>
                 {/* <NavFooter items={data.navFooter}/> */}
+                <NavTrial />
                 <NavUser user={data.user}/>
             </SidebarFooter>
             <SidebarRail/>
