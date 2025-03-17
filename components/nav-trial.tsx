@@ -1,6 +1,7 @@
 "use client"
 
 import { ArrowRight } from "lucide-react"
+import Link from "next/link"
 import {
     SidebarGroup,
     SidebarMenu,
@@ -19,9 +20,11 @@ export function NavTrial() {
                         <span className="text-gray-600">0/3</span>
                     </div>
                 </div>
-                <button className="w-full bg-blue-500 hover:bg-blue-600 text-white rounded-md py-2 px-4 text-sm font-medium flex items-center justify-center">
-                    Upgrade plan
-                </button>
+                <Link href="/pricing">
+                    <button className="w-full bg-blue-500 hover:bg-blue-600 text-white rounded-md py-2 px-4 text-sm font-medium flex items-center justify-center">
+                        Upgrade plan
+                    </button>
+                </Link>
             </div>
         </SidebarGroup>
     )
