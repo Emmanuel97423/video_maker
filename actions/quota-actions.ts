@@ -18,7 +18,7 @@ export async function getUserQuota(userId: string): Promise<UserQuotaRow | null>
 
         return quota;
     } catch (error) {
-        console.error('Erreur inattendue lors de la récupération du quota:', error);
+        console.error('Erreur inattendue coté serveur lors de la récupération du quota:', error);
         return null;
     }
 }
