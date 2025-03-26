@@ -1,6 +1,5 @@
 'use client';
 
-import { useUserVideos } from '@/hooks/useUserVideos';
 import { Button } from './ui/button';
 import { Loader2 } from 'lucide-react';
 import { useState, useEffect } from 'react';
@@ -8,6 +7,8 @@ import { createClient } from '@/utils/supabase/client';
 import React from 'react';
 import { downloadVideo } from '@/utils/downloadVideo';
 import { toast } from "sonner"
+import { useUserVideos } from '@/hooks/useUserVideos';
+import { Video } from '@/actions/video-actions';
 
 type VideoStatus = 'pending' | 'processing' | 'completed' | 'failed';
 
@@ -20,7 +21,7 @@ export function VideoList({ limit = 100, offset = 0 }: VideoListProps) {
     const [videoUrls, setVideoUrls] = useState<{[key: string]: string}>({});
     const [thumbnails, setThumbnails] = useState<{[key: string]: string}>({});
     const [loadingThumbnails, setLoadingThumbnails] = useState<{[key: string]: boolean}>({});
-    const { videos, loading, error } = useUserVideos({ limit, offset });
+    const { videos, loading, error, isAuthenticated } = useUserVideos({ limit, offset });
     const [hoveredVideoId, setHoveredVideoId] = useState<string | null>(null);
 
     async function getVideoUrls(videos: any[]) {
@@ -29,7 +30,7 @@ export function VideoList({ limit = 100, offset = 0 }: VideoListProps) {
         
         return Promise.all(videos.map(async (video) => {
             setLoadingThumbnails(prev => ({ ...prev, [video.id]: true }));
-            const { data, error } = await supabase.storage.from('videos').createSignedUrl(`${user?.id}/${video.name}`, 60 * 60);
+            const { data, error } = await supabase.storage.from('videos').createSignedUrl(`upload_videos/${user?.id}/${video.name}`, 60 * 60);
             if (error) {
                 console.error('Erreur lors de la création de la URL de la vidéo:', error);
                 setLoadingThumbnails(prev => ({ ...prev, [video.id]: false }));
@@ -78,36 +79,30 @@ export function VideoList({ limit = 100, offset = 0 }: VideoListProps) {
         });
     };
 
-    const handleVideoHover = async (video: any) => {
-        if (!videoUrls[video.id]) {
-            const urls = await getVideoUrls([video]);
-            if (urls[0]?.url) {
-                const url = urls[0].url;
-                setVideoUrls(prev => ({
-                    ...prev,
-                    [video.id]: url
-                }));
-            }
-        }
+    const handleVideoHover = (video: Video) => {
         setHoveredVideoId(video.id);
     };
 
-    const handleDownload = async (video: any) => {
+    const handleDownload = async (video: Video) => {
         try {
-            if (!videoUrls[video.id]) {
-                const urls = await getVideoUrls([video]);
-                if (urls[0]?.url) {
-                    await downloadVideo(urls[0].url, video.name);
-                    toast.success("La vidéo a été téléchargée avec succès");
-                }
-            } else {
-                await downloadVideo(videoUrls[video.id], video.name);
+            if (video.url) {
+                await downloadVideo(video.url, video.name);
                 toast.success("La vidéo a été téléchargée avec succès");
+            } else {
+                toast.error("URL de la vidéo non disponible");
             }
         } catch (error) {
             toast.error("Impossible de télécharger la vidéo");
         }
     };
+
+    if (!isAuthenticated) {
+        return (
+            <div className="text-center py-8 text-gray-500">
+                Veuillez vous connecter pour voir vos vidéos
+            </div>
+        );
+    }
 
     if (loading) {
         return (
@@ -185,14 +180,14 @@ export function VideoList({ limit = 100, offset = 0 }: VideoListProps) {
                                         src={thumbnails[video.id]}
                                         alt={video.name || 'Vignette de la vidéo'}
                                         className={`object-cover w-full h-full absolute inset-0 transition-opacity duration-300 ${
-                                            hoveredVideoId === video.id && videoUrls[video.id] && status === 'completed'
+                                            hoveredVideoId === video.id && video.url && status === 'completed'
                                                 ? 'opacity-0'
                                                 : 'opacity-100'
                                         }`}
                                     />
-                                    {videoUrls[video.id] && status === 'completed' && (
+                                    {video.url && status === 'completed' && (
                                         <video
-                                            src={videoUrls[video.id]}
+                                            src={video.url}
                                             className={`object-cover w-full h-full absolute inset-0 transition-opacity duration-300 ${
                                                 hoveredVideoId === video.id ? 'opacity-100' : 'opacity-0'
                                             }`}

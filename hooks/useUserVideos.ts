@@ -1,54 +1,37 @@
-import { useEffect, useState } from 'react';
+import { useState, useEffect } from 'react';
+import { createClient } from '@/utils/supabase/client';
+import { getUserVideos, Video } from '@/actions/video-actions';
 
-// Types
-type Video = {
-    id: string;
-    name: string;
-    owner_id: string;
-};
-
-type FetchOptions = {
+interface UseUserVideosProps {
     limit?: number;
     offset?: number;
-};
+}
 
-export const useUserVideos = (options: FetchOptions = {}) => {
+export function useUserVideos({ limit = 100, offset = 0 }: UseUserVideosProps) {
     const [videos, setVideos] = useState<Video[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
-
-    const fetchVideos = async () => {
-        try {
-            setLoading(true);
-            const response = await fetch(`/api/video/list?limit=${options.limit || 100}&offset=${options.offset || 0}`);
-            
-            if (!response.ok) {
-                throw new Error(`Erreur HTTP: ${response.status}`);
-            }
-
-            const { success, files, error } = await response.json();
-
-            if (!success || error) {
-                throw new Error(error || 'Erreur lors de la récupération des vidéos');
-            }
-
-            setVideos(files);
-            
-        } catch (err) {
-            setError(err instanceof Error ? err.message : 'Erreur lors du chargement des vidéos');
-        } finally {
-            setLoading(false);
-        }
-    };
+    const [isAuthenticated, setIsAuthenticated] = useState(false);
 
     useEffect(() => {
-        fetchVideos();
-    }, [options.limit, options.offset]);
+        const fetchVideos = async () => {
+            try {
+                const videos = await getUserVideos({ limit, offset });
+                setVideos(videos);
+                setIsAuthenticated(true);
+            } catch (err) {
+                if (err instanceof Error && err.message === 'Utilisateur non authentifié') {
+                    setIsAuthenticated(false);
+                } else {
+                    setError(err instanceof Error ? err.message : 'Une erreur est survenue');
+                }
+            } finally {
+                setLoading(false);
+            }
+        };
 
-    return { 
-        videos, 
-        loading, 
-        error, 
-        refetch: fetchVideos 
-    };
-}; 
+        fetchVideos();
+    }, [limit, offset]);
+
+    return { videos, loading, error, isAuthenticated };
+} 
