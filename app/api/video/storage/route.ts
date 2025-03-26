@@ -1,20 +1,12 @@
 /**
  * Configuration du client Supabase et constantes
  */
-import { createClientForServer } from '@/utils/supabase/server';
 import { NextRequest, NextResponse } from 'next/server';
 import {
     createSupabaseClient,
     uploadVideoToStorage,
-    saveVideoMetadata
+    validateVideoSize
 } from './controllers/videoController';
-
-interface StorageRequest {
-    videoUrl: string;
-    userId: string;
-    prompt: string;
-    imageUrl: string;
-}
 
 /**
  * Gère le téléchargement et le stockage d'une vidéo dans Supabase Storage.
@@ -37,12 +29,13 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
         }
 
         const supabase = createSupabaseClient();
-        const result = await saveVideoMetadata(supabase, {
-            taskId: body.taskId,
-            userId: body.userId,
-            videoUrl: body.videoUrl,
-            imageUrl: body.imageUrl
-        });
+        const videoBlob = await validateVideoSize(body.videoUrl);
+        const result = await uploadVideoToStorage(
+            supabase,
+            body.userId,
+            body.taskId,
+            videoBlob
+        );
 
         return NextResponse.json(result);
 
