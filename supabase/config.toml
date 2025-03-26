@@ -29,7 +29,7 @@ enable_signup = true
 enabled = true
 client_id = "env(GOOGLE_CLIENT_ID)"      # Utilise la variable d'environnement
 client_secret = "env(GOOGLE_CLIENT_SECRET)"  # Utilise la variable d'environnement
-redirect_uri = "http://localhost:54321/auth/v1/callback"
+redirect_uri = "http://localhost:8000/auth/v1/callback"
 
 [debug]
 enable_db_logging = true
