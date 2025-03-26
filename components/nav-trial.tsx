@@ -28,8 +28,11 @@ export function NavTrial() {
                         Renouvellement le {new Date(quota.reset_date).toLocaleDateString()}
                     </div>
                 </div>
-                <Link href="/pricing" disabled={true}>
-                    <button className="w-full bg-blue-500 hover:bg-blue-600 text-white rounded-md py-2 px-4 text-sm font-medium flex items-center justify-center">
+                <Link href="/pricing">
+                    <button 
+                        disabled={true} 
+                        className="w-full bg-blue-500 hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-blue-500 text-white rounded-md py-2 px-4 text-sm font-medium flex items-center justify-center"
+                    >
                         Mettre à jour
                     </button>
                 </Link>
