@@ -66,18 +66,31 @@ export async function signout() {
 export async function signInWithGoogle() {
     const supabase = await createClientForServer();
     const auth_callback_url = `${process.env.NEXT_PUBLIC_SITE_URL}/auth/callback`;
-    const {data, error} = await supabase.auth.signInWithOAuth({
-        provider: "google",
-        options: {
-            queryParams: {
-                redirectTo: auth_callback_url
+    
+    try {
+        const { data, error } = await supabase.auth.signInWithOAuth({
+            provider: "google",
+            options: {
+                queryParams: {
+                    redirectTo: auth_callback_url,
+                    prompt: 'select_account'
+                },
             },
-        },
-    });
+        });
 
-    if (error) {
-        console.log(error);
-        redirect("/error");
+        if (error) {
+            console.error("Erreur d'authentification Google:", error);
+            return { error: "Erreur d'authentification Google" };
+        }
+
+        if (!data?.url) {
+            console.error("URL de redirection manquante");
+            return { error: "URL de redirection manquante" };
+        }
+
+        return { url: data.url };
+    } catch (error) {
+        console.error("Erreur inattendue:", error);
+        return { error: "Erreur inattendue lors de la connexion" };
     }
-    redirect(<string>data?.url || "/");
 }
