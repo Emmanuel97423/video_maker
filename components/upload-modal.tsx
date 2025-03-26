@@ -10,6 +10,7 @@ import { useVideoGeneration } from "@/hooks/useVideoGeneration"
 import { VIDEO_GENERATION_STATUS } from "@/lib/types/kling"
 import { VideoServiceProvider } from "@/lib/types/video-service"
 import { UnifiedVideoService } from "@/lib/video-service"
+import { useUser } from "@/hooks/useUser"
 import Image from "next/image"
 
 interface UploadModalProps {
@@ -18,11 +19,12 @@ interface UploadModalProps {
 }
 
 export function UploadModal({ open, onOpenChange }: UploadModalProps) {
+    const { user } = useUser();
+    const { generateVideo, status, error, isLoading, progress, message, downloadUrl, remainingVideos } = useVideoGeneration(user?.id || '');
     const [isDragging, setIsDragging] = useState(false);
     const [selectedFile, setSelectedFile] = useState<{ file: File; preview: string } | null>(null);
     const [isProcessing, setIsProcessing] = useState(false);
     const [provider, setProvider] = useState<VideoServiceProvider>('kling');
-    const { generateVideo, status, error, isLoading, progress, message, downloadUrl } = useVideoGeneration();
 
     const handleProviderChange = useCallback((newProvider: VideoServiceProvider) => {
         UnifiedVideoService.setProvider(newProvider);

@@ -1,13 +1,15 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { UnifiedVideoService } from '@/lib/video-service';
 import { VideoGenerationStatus, UNIFIED_STATUS, UnifiedStatus } from '@/lib/types/video-service';
 import { StorageService } from '@/lib/storage-service';
 import { toast } from 'sonner';
+import { useUserQuota } from './useUserQuota';
 
 const MAX_POLLING_ATTEMPTS = 60; // 5 minutes (avec 5 secondes d'intervalle)
 const POLLING_INTERVAL = 5000; // 5 secondes
 
-export function useVideoGeneration() {
+export function useVideoGeneration(userId: string) {
+    const { incrementVideoCount, remainingVideos, loading: quotaLoading } = useUserQuota(userId);
     const [status, setStatus] = useState<UnifiedStatus>(UNIFIED_STATUS.IDLE);
     const [error, setError] = useState<string | null>(null);
     const [isLoading, setIsLoading] = useState(false);
@@ -15,6 +17,10 @@ export function useVideoGeneration() {
     const [message, setMessage] = useState<string>('');
     const [downloadUrl, setDownloadUrl] = useState<string | null>(null);
     const [currentTaskId, setCurrentTaskId] = useState<string | null>(null);
+
+    useEffect(() => {
+        console.log('useVideoGeneration - Quota updated:', { remainingVideos, quotaLoading, userId });
+    }, [remainingVideos, quotaLoading, userId]);
 
     const updateProgress = useCallback((currentStatus: UnifiedStatus, attempt: number) => {
         switch (currentStatus) {
@@ -54,6 +60,13 @@ export function useVideoGeneration() {
     }, []);
 
     const generateVideo = useCallback(async (imageUrl: string, prompt: string) => {
+        // Vérifier le quota avant de générer
+        
+        if (remainingVideos <= 0) {
+            toast.error("Vous avez atteint votre limite de vidéos. Veuillez upgrader votre plan pour continuer.");
+            return;
+        }
+
         try {
             setIsLoading(true);
             setError(null);
@@ -99,10 +112,15 @@ export function useVideoGeneration() {
             ) {
                 const videoUrl = await UnifiedVideoService.getVideoUrl(currentStatus.fileId);
                 
-                // Sauvegarder dans Supabase via l'API
                 setMessage('Sauvegarde de la vidéo...');
                 const storedVideoUrl = await StorageService.saveVideoToStorage(videoUrl, taskId, imageUrl);
                 
+                // Incrémenter le compteur de vidéos
+                const quotaUpdated = await incrementVideoCount();
+                if (!quotaUpdated) {
+                    throw new Error("Erreur lors de la mise à jour du quota");
+                }
+
                 setDownloadUrl(storedVideoUrl);
                 setMessage('Vidéo générée et sauvegardée avec succès !');
                 setStatus(UNIFIED_STATUS.COMPLETED);
@@ -129,7 +147,7 @@ export function useVideoGeneration() {
         } finally {
             setIsLoading(false);
         }
-    }, [updateProgress, mapStatusMessage]);
+    }, [updateProgress, mapStatusMessage, remainingVideos, incrementVideoCount]);
 
     return {
         generateVideo,
@@ -139,6 +157,8 @@ export function useVideoGeneration() {
         progress,
         message,
         downloadUrl,
-        currentTaskId
-    };o
+        currentTaskId,
+        remainingVideos,
+        quotaLoading
+    };
 } 

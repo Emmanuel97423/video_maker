@@ -22,7 +22,8 @@ export async function getUserVideos({ limit = 100, offset = 0 }: { limit?: numbe
 
         const { data: videos, error } = await supabase.storage.from('videos').list(`upload_videos/${user.id}`, {
             limit: limit,
-            offset: offset
+            offset: offset,
+            sortBy: { column: 'created_at', order: 'desc' }
         });
 
         if (error) {

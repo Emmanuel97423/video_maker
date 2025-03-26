@@ -17,7 +17,7 @@ console.log('userId', userId);
         .list(`${userId}/`, {
             limit: options.limit || 100,
             offset: options.offset || 0,
-            sortBy: { column: 'name', order: 'desc' }
+            sortBy: { column: 'created_at', order: 'asc' }
         });
 
     console.log('Files récupérés:', files);
