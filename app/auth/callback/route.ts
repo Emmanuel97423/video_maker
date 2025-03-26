@@ -1,31 +1,30 @@
-
 import { NextResponse } from 'next/server'
 // The client you created from the Server-Side Auth instructions
 import { createClientForServer } from '@/utils/supabase/server'
 
 export async function GET(request: Request) {
-    const { searchParams, origin } = new URL(request.url)
-    const code = searchParams.get('code')
-    // if "next" is in param, use it as the redirect URL
-    const next = searchParams.get('next') ?? '/'
+    const requestUrl = new URL(request.url)
+    const code = requestUrl.searchParams.get('code')
+    
+    // Récupérer le paramètre next s'il existe, sinon rediriger vers la racine
+    const next = requestUrl.searchParams.get('next') ?? '/'
 
     if (code) {
-        const supabase = await createClientForServer();
+        const supabase = await createClientForServer()
         const { error } = await supabase.auth.exchangeCodeForSession(code)
+        
         if (!error) {
-            const forwardedHost = request.headers.get('x-forwarded-host') // original origin before load balancer
-            const isLocalEnv = process.env.NODE_ENV === 'development'
-            if (isLocalEnv) {
-                // we can be sure that there is no load balancer in between, so no need to watch for X-Forwarded-Host
-                return NextResponse.redirect(`${origin}${next}`)
-            } else if (forwardedHost) {
-                return NextResponse.redirect(`https://${forwardedHost}${next}`)
-            } else {
-                return NextResponse.redirect(`${origin}${next}`)
-            }
+            // Gérer la redirection en tenant compte de l'environnement
+            const forwardedHost = request.headers.get('x-forwarded-host')
+            const protocol = process.env.NODE_ENV === 'production' ? 'https' : 'http'
+            const host = forwardedHost ?? requestUrl.host
+            const baseUrl = `${protocol}://${host}`
+            
+            // Rediriger vers la page demandée ou la racine
+            return NextResponse.redirect(`${baseUrl}${next}`)
         }
     }
 
-    // return the user to an error page with instructions
-    return NextResponse.redirect(`${origin}/auth/auth-code-error`)
+    // En cas d'erreur, rediriger vers la page d'erreur
+    return NextResponse.redirect(`${requestUrl.origin}/auth/auth-code-error`)
 }
