@@ -31,12 +31,15 @@ export async function initializeUserQuota(userId: string): Promise<UserQuotaRow 
 
         const { data: quota, error } = await supabase
             .from('user_quotas')
-            .insert({
+            .upsert({
                 user_id: userId,
                 plan: 'FREE' as PlanType,
                 video_count: 0,
                 max_videos: PLAN_LIMITS.FREE,
                 reset_date: thirtyDaysFromNow.toISOString(),
+            }, {
+                onConflict: 'user_id',
+                ignoreDuplicates: false
             })
             .select()
             .single();
