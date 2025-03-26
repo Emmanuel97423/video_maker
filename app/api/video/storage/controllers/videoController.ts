@@ -76,7 +76,7 @@ export const uploadVideoToStorage = async (
         });
 
         // Créer un nom de fichier unique basé sur le taskId
-        const filePath = `${userId}/${taskId}.mp4`;
+        const filePath = `upload_videos/${userId}/${taskId}.mp4`;
 
         console.log('Tentative d\'upload vers:', filePath);
 
