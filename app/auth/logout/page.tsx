@@ -9,8 +9,13 @@ const LogoutPage = () => {
 
     useEffect(() => {
         const handleLogout = async () => {
-            await supabase.auth.signOut();
-            setTimeout(() => router.push("/auth/login"), 1000);
+            try {
+                await supabase.auth.signOut();
+                router.replace("/auth/login");
+            } catch (error) {
+                console.error("Erreur lors de la déconnexion:", error);
+                router.replace("/error");
+            }
         };
         handleLogout();
     }, []);

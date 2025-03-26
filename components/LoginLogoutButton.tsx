@@ -21,9 +21,15 @@ const LoginButton = () => {
     if (user) {
         return (
             <Button
-                onClick={() => {
-                    signout();
-                    setUser(null);
+                onClick={async () => {
+                    try {
+                        await supabase.auth.signOut();
+                        router.replace("/auth/login");
+                        setUser(null);
+                    } catch (error) {
+                        console.error("Erreur lors de la déconnexion:", error);
+                        router.replace("/error");
+                    }
                 }}
             >
                 Se déconnecter
