@@ -11,20 +11,33 @@ export async function GET(request: Request) {
 
     if (code) {
         const supabase = await createClientForServer()
-        const { error } = await supabase.auth.exchangeCodeForSession(code)
+        const { error, data } = await supabase.auth.exchangeCodeForSession(code)
         
-        if (!error) {
-            // Gérer la redirection en tenant compte de l'environnement
-            const forwardedHost = request.headers.get('x-forwarded-host')
-            const protocol = process.env.NODE_ENV === 'production' ? 'https' : 'http'
-            const host = forwardedHost ?? requestUrl.host
-            const baseUrl = `${protocol}://${host}`
+        if (!error && data.session) {
+            // Créer la réponse de redirection
+            const response = NextResponse.redirect(new URL(next, requestUrl.origin))
             
-            // Rediriger vers la page demandée ou la racine
-            return NextResponse.redirect(`${baseUrl}${next}`)
+            // Définir les cookies de session
+            response.cookies.set('sb-access-token', data.session.access_token, {
+                path: '/',
+                httpOnly: true,
+                secure: process.env.NODE_ENV === 'production',
+                sameSite: 'lax',
+                maxAge: 60 * 60 * 24 * 7 // 7 jours
+            })
+            
+            response.cookies.set('sb-refresh-token', data.session.refresh_token, {
+                path: '/',
+                httpOnly: true,
+                secure: process.env.NODE_ENV === 'production',
+                sameSite: 'lax',
+                maxAge: 60 * 60 * 24 * 7 // 7 jours
+            })
+            
+            return response
         }
     }
 
     // En cas d'erreur, rediriger vers la page d'erreur
-    return NextResponse.redirect(`${requestUrl.origin}/auth/auth-code-error`)
+    return NextResponse.redirect(new URL('/auth/auth-code-error', requestUrl.origin))
 }
