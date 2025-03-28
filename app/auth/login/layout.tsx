@@ -25,7 +25,8 @@ export default function RootLayout({
 }>) {
     return (
         <div>
-            <Header/>
+            {/* <Header/> */}
+            <header className="h-16 border-b border-gray-100"></header>
             {children}
         </div>
     );

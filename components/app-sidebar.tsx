@@ -2,6 +2,7 @@
 
 import * as React from "react"
 import {BookOpen, Bot, FolderDot, GalleryVerticalEnd, Settings2, SquareTerminal,} from "lucide-react"
+import { useUser } from "@/hooks/useUser"
 
 import {NavMain} from "@/components/nav-main"
 import {NavProjects} from "@/components/nav-projects"
@@ -13,11 +14,6 @@ import {NavTrial} from "@/components/nav-trial"
 
 // This is sample data.
 const data = {
-    user: {
-        name: "Manu",
-        email: "emmanuel.narcisse97460@gmail.com",
-        avatar: "/avatars/shadcn.jpg",
-    },
     teams: [
         {
             name: "Mon entreprise",
@@ -150,6 +146,18 @@ const data = {
 }
 
 export function AppSidebar({...props}: React.ComponentProps<typeof Sidebar>) {
+    const { user, loading } = useUser();
+
+    const userData = user ? {
+        name: user.name || "Utilisateur",
+        email: user.email,
+        avatar: "/avatars/default.jpg",
+    } : {
+        name: loading ? "Chargement..." : "Non connecté",
+        email: "",
+        avatar: "/avatars/default.jpg",
+    };
+
     return (
         <Sidebar collapsible="icon" {...props}>
             <SidebarHeader>
@@ -162,7 +170,7 @@ export function AppSidebar({...props}: React.ComponentProps<typeof Sidebar>) {
             <SidebarFooter>
                 {/* <NavFooter items={data.navFooter}/> */}
                 <NavTrial />
-                <NavUser user={data.user}/>
+                <NavUser user={userData}/>
             </SidebarFooter>
             <SidebarRail/>
         </Sidebar>

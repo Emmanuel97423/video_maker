@@ -97,23 +97,26 @@ export function UploadModal({ open, onOpenChange }: UploadModalProps) {
                 </DialogHeader>
 
                 {/* Sélection du Provider */}
-                <div className="flex justify-center gap-2 mb-4">
-                    <Button
-                        variant={provider === 'kling' ? 'default' : 'outline'}
-                        size="sm"
-                        onClick={() => handleProviderChange('kling')}
-                        className="w-24"
-                    >
-                        Kling
-                    </Button>
-                    <Button
-                        variant={provider === 'minimax' ? 'default' : 'outline'}
-                        size="sm"
-                        onClick={() => handleProviderChange('minimax')}
-                        className="w-24"
-                    >
-                        Minimax
-                    </Button>
+                <div className="flex flex-col items-center gap-2 mb-4">
+                    <p className="text-sm text-muted-foreground">Choisissez la version du modèle de génération</p>
+                    <div className="flex justify-center gap-2">
+                        <Button
+                            variant={provider === 'minimax' ? 'default' : 'outline'}
+                            size="sm"
+                            onClick={() => handleProviderChange('minimax')}
+                            className="w-24"
+                        >
+                            Version 1
+                        </Button>
+                        <Button
+                            variant={provider === 'kling' ? 'default' : 'outline'}
+                            size="sm"
+                            onClick={() => handleProviderChange('kling')}
+                            className="w-24"
+                        >
+                            Version 2
+                        </Button>
+                    </div>
                 </div>
 
                 {/* Upload Zone */}

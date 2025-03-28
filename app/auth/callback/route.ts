@@ -3,41 +3,27 @@ import { NextResponse } from 'next/server'
 import { createClientForServer } from '@/utils/supabase/server'
 
 export async function GET(request: Request) {
-    const requestUrl = new URL(request.url)
-    const code = requestUrl.searchParams.get('code')
-    
-    // Récupérer le paramètre next s'il existe, sinon rediriger vers la racine
-    const next = requestUrl.searchParams.get('next') ?? '/'
+    const { searchParams, origin } = new URL(request.url)
+    const code = searchParams.get('code')
+    const next = searchParams.get('next') ?? '/'
 
     if (code) {
         const supabase = await createClientForServer()
-        const { error, data } = await supabase.auth.exchangeCodeForSession(code)
+        const { error } = await supabase.auth.exchangeCodeForSession(code)
         
-        if (!error && data.session) {
-            // Créer la réponse de redirection
-            const response = NextResponse.redirect(new URL(next, requestUrl.origin))
+        if (!error) {
+            const forwardedHost = request.headers.get('x-forwarded-host')
+            const isLocalEnv = process.env.NODE_ENV === 'development'
             
-            // Définir les cookies de session
-            response.cookies.set('sb-access-token', data.session.access_token, {
-                path: '/',
-                httpOnly: true,
-                secure: process.env.NODE_ENV === 'production',
-                sameSite: 'lax',
-                maxAge: 60 * 60 * 24 * 7 // 7 jours
-            })
-            
-            response.cookies.set('sb-refresh-token', data.session.refresh_token, {
-                path: '/',
-                httpOnly: true,
-                secure: process.env.NODE_ENV === 'production',
-                sameSite: 'lax',
-                maxAge: 60 * 60 * 24 * 7 // 7 jours
-            })
-            
-            return response
+            if (isLocalEnv) {
+                return NextResponse.redirect(`${origin}${next}`)
+            } else if (forwardedHost) {
+                return NextResponse.redirect(`https://${forwardedHost}${next}`)
+            } else {
+                return NextResponse.redirect(`${origin}${next}`)
+            }
         }
     }
 
-    // En cas d'erreur, rediriger vers la page d'erreur
-    return NextResponse.redirect(new URL('/auth/auth-code-error', requestUrl.origin))
+    return NextResponse.redirect(`${origin}/auth/auth-code-error`)
 }
