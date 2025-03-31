@@ -7,6 +7,9 @@ import {createClient} from "@/utils/supabase/client";
 import {useEffect} from "react";
 import {useRouter} from "next/navigation";
 
+// Forcer le rendu dynamique
+export const dynamic = 'force-dynamic';
+
 export default function LoginPage() {
     const supabase = createClient();
     const router = useRouter();

@@ -22,6 +22,9 @@ import { Bell, ImageDown } from "lucide-react"
 import { useState } from "react"
 import { VideoList } from "@/components/video-list"
 
+// Désactiver la génération statique pour cette page
+export const dynamic = 'force-dynamic';
+
 export default function HomePage() {
     const [uploadModalOpen, setUploadModalOpen] = useState(false)
 
