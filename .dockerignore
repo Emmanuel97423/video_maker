@@ -1,0 +1,65 @@
+# Dépendances
+node_modules
+npm-debug.log
+yarn-debug.log
+yarn-error.log
+.pnpm-debug.log
+
+# Fichiers de build
+.next
+out
+build
+dist
+
+# Fichiers de développement
+.git
+.gitignore
+.env*
+.dockerignore
+Dockerfile
+docker-compose*
+README.md
+CHANGELOG.md
+.vscode
+.idea
+*.log
+
+# Fichiers de test
+coverage
+.nyc_output
+__tests__
+*.test.*
+*.spec.*
+
+# Fichiers système
+.DS_Store
+Thumbs.db
+
+# Fichiers de documentation
+docs
+*.md
+!README.md
+
+# Fichiers de configuration
+.eslintrc*
+.prettierrc*
+.editorconfig
+tsconfig.tsbuildinfo
+
+# Fichiers Supabase
+supabase/.branches
+supabase/.temp
+supabase/.env
+
+# Fichiers de cache
+.cache
+.temp
+.tmp
+
+# Fichiers de déploiement
+k8s/*.tar
+k8s/*.yaml
+!k8s/deployment.yaml
+!k8s/service.yaml
+!k8s/deploy.sh
+!k8s/create-secrets.sh 
