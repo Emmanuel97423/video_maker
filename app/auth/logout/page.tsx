@@ -1,15 +1,15 @@
 'use client';
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
-import { createClient } from "@/utils/supabase/client";
+import { createClientForServer } from "@/utils/supabase/server";
 
 const LogoutPage = () => {
     const router = useRouter();
-    const supabase = createClient();
 
     useEffect(() => {
         const handleLogout = async () => {
             try {
+                const supabase = await createClientForServer();
                 await supabase.auth.signOut();
                 router.replace("/auth/login");
             } catch (error) {
