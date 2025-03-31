@@ -30,4 +30,7 @@ const LogoutPage = () => {
     );
 };
 
+// Désactiver la génération statique pour cette page
+export const dynamic = 'force-dynamic';
+
 export default LogoutPage;

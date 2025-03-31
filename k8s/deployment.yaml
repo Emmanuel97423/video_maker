@@ -19,10 +19,12 @@ spec:
         image: video-maker:latest
         imagePullPolicy: IfNotPresent
         ports:
-        - containerPort: 3000
+        - containerPort: 8080
         env:
         - name: NODE_ENV
           value: "production"
+        - name: PORT
+          value: "8080"
         - name: NEXT_PUBLIC_SUPABASE_URL
           valueFrom:
             secretKeyRef:
@@ -48,12 +50,12 @@ spec:
         readinessProbe:
           httpGet:
             path: /api/health
-            port: 3000
+            port: 8080
           initialDelaySeconds: 5
           periodSeconds: 10
         livenessProbe:
           httpGet:
             path: /api/health
-            port: 3000
+            port: 8080
           initialDelaySeconds: 15
           periodSeconds: 20 
