@@ -1,5 +1,5 @@
 import type {Metadata} from "next";
-import {Geist, Geist_Mono} from "next/font/google";
+import {Geist, JetBrains_Mono} from "next/font/google";
 import "@/app/globals.css";
 import Header from "@/components/ui/header";
 
@@ -8,8 +8,8 @@ const geistSans = Geist({
     subsets: ["latin"],
 });
 
-const geistMono = Geist_Mono({
-    variable: "--font-geist-mono",
+const jetbrainsMono = JetBrains_Mono({
+    variable: "--font-jetbrains-mono",
     subsets: ["latin"],
 });
 
