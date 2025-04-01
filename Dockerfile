@@ -68,15 +68,21 @@ COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 USER nextjs
 
 # Expose port
-EXPOSE 8080
+EXPOSE 3001
 
 # Set environment variables for the server
-ENV PORT 8080
+ENV PORT 3001
 ENV HOSTNAME "0.0.0.0"
+
+# Auth configuration
+ENV NEXTAUTH_URL="http://0.0.0.0:3001"
+ENV NEXTAUTH_URL_INTERNAL="http://0.0.0.0:3001"
+ENV NEXT_PUBLIC_SITE_URL="http://0.0.0.0:3001"
+ENV NEXT_PUBLIC_APP_URL="http://0.0.0.0:3001"
 
 # Healthcheck
 HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
-    CMD node -e "require('http').get('http://localhost:8080/api/health', (r) => r.statusCode === 200 ? process.exit(0) : process.exit(1))"
+    CMD node -e "require('http').get('http://0.0.0.0:3001/api/health', (r) => r.statusCode === 200 ? process.exit(0) : process.exit(1))"
 
 # Start the application
 CMD ["node", "server.js"] 
